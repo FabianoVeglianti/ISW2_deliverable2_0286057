@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-14">
+		<attributes>
+			<attribute name="module" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="jars/args4j-2.33.jar"/>
+	<classpathentry kind="lib" path="jars/bcpg-jdk15on-1.64.jar"/>
+	<classpathentry kind="lib" path="jars/bcpkix-jdk15on-1.64.jar"/>
+	<classpathentry kind="lib" path="jars/bcprov-jdk15on-1.64.jar"/>
+	<classpathentry kind="lib" path="jars/commons-codec-1.11.jar"/>
+	<classpathentry kind="lib" path="jars/commons-collections4-4.0.jar"/>
+	<classpathentry kind="lib" path="jars/commons-compress-1.19.jar"/>
+	<classpathentry kind="lib" path="jars/commons-lang3-3.10.jar"/>
+	<classpathentry kind="lib" path="jars/commons-logging-1.2.jar"/>
+	<classpathentry kind="lib" path="jars/eddsa-0.3.0.jar"/>
+	<classpathentry kind="lib" path="jars/gson-2.8.2.jar"/>
+	<classpathentry kind="lib" path="jars/httpclient-4.5.10.jar"/>
+	<classpathentry kind="lib" path="jars/httpcore-4.4.12.jar"/>
+	<classpathentry kind="lib" path="jars/JavaEWAH-1.1.7.jar"/>
+	<classpathentry kind="lib" path="jars/javax.servlet-api-3.1.0.jar"/>
+	<classpathentry kind="lib" path="jars/jetty-http-9.4.25.v20191220.jar"/>
+	<classpathentry kind="lib" path="jars/jetty-io-9.4.25.v20191220.jar"/>
+	<classpathentry kind="lib" path="jars/jetty-security-9.4.25.v20191220.jar"/>
+	<classpathentry kind="lib" path="jars/jetty-server-9.4.25.v20191220.jar"/>
+	<classpathentry kind="lib" path="jars/jetty-servlet-9.4.25.v20191220.jar"/>
+	<classpathentry kind="lib" path="jars/jetty-util-9.4.25.v20191220.jar"/>
+	<classpathentry kind="lib" path="jars/jsch-0.1.55.jar"/>
+	<classpathentry kind="lib" path="jars/json-20190722.jar"/>
+	<classpathentry kind="lib" path="jars/json-simple-1.1.1.jar"/>
+	<classpathentry kind="lib" path="jars/jzlib-1.1.1.jar"/>
+	<classpathentry kind="lib" path="jars/log4j-1.2.15.jar"/>
+	<classpathentry kind="lib" path="jars/org.eclipse.jgit.archive-5.7.0.202003110725-r.jar"/>
+	<classpathentry kind="lib" path="jars/org.eclipse.jgit.http.apache-5.7.0.202003110725-r.jar"/>
+	<classpathentry kind="lib" path="jars/org.eclipse.jgit.lfs.server-5.7.0.202003110725-r.jar"/>
+	<classpathentry kind="lib" path="jars/org.eclipse.jgit.lfs-5.7.0.202003110725-r.jar"/>
+	<classpathentry kind="lib" path="jars/org.eclipse.jgit.pgm-5.7.0.202003110725-r.jar"/>
+	<classpathentry kind="lib" path="jars/org.eclipse.jgit.ssh.apache-5.7.0.202003110725-r.jar"/>
+	<classpathentry kind="lib" path="jars/org.eclipse.jgit.ui-5.7.0.202003110725-r.jar"/>
+	<classpathentry kind="lib" path="jars/org.eclipse.jgit-5.7.0.202003110725-r.jar"/>
+	<classpathentry kind="lib" path="jars/org.osgi.core-4.3.1.jar"/>
+	<classpathentry kind="lib" path="jars/slf4j-api-1.7.2.jar"/>
+	<classpathentry kind="lib" path="jars/slf4j-api-1.7.25.jar"/>
+	<classpathentry kind="lib" path="jars/slf4j-log4j12-1.7.2.jar"/>
+	<classpathentry kind="lib" path="jars/SMOTE.jar"/>
+	<classpathentry kind="lib" path="jars/sshd-common-2.2.0.jar"/>
+	<classpathentry kind="lib" path="jars/sshd-core-2.2.0.jar"/>
+	<classpathentry kind="lib" path="jars/sshd-osgi-2.2.0.jar"/>
+	<classpathentry kind="lib" path="jars/sshd-sftp-2.2.0.jar"/>
+	<classpathentry kind="lib" path="jars/weka.jar"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>

@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- WARNING: Eclipse auto-generated file.
+              Any modifications will be overwritten.
+              To include a user specific buildfile here, simply create one in the same
+              directory with the processing instruction <?eclipse.ant.import?>
+              as the first entry and export the buildfile again. --><project basedir="." default="build" name="Deliverable2">
+    <property environment="env"/>
+    <property name="debuglevel" value="source,lines,vars"/>
+    <property name="target" value="14"/>
+    <property name="source" value="14"/>
+    <path id="Deliverable2.classpath">
+        <pathelement location="bin"/>
+        <pathelement location="jars/args4j-2.33.jar"/>
+        <pathelement location="jars/bcpg-jdk15on-1.64.jar"/>
+        <pathelement location="jars/bcpkix-jdk15on-1.64.jar"/>
+        <pathelement location="jars/bcprov-jdk15on-1.64.jar"/>
+        <pathelement location="jars/commons-codec-1.11.jar"/>
+        <pathelement location="jars/commons-collections4-4.0.jar"/>
+        <pathelement location="jars/commons-compress-1.19.jar"/>
+        <pathelement location="jars/commons-lang3-3.10.jar"/>
+        <pathelement location="jars/commons-logging-1.2.jar"/>
+        <pathelement location="jars/eddsa-0.3.0.jar"/>
+        <pathelement location="jars/gson-2.8.2.jar"/>
+        <pathelement location="jars/httpclient-4.5.10.jar"/>
+        <pathelement location="jars/httpcore-4.4.12.jar"/>
+        <pathelement location="jars/JavaEWAH-1.1.7.jar"/>
+        <pathelement location="jars/javax.servlet-api-3.1.0.jar"/>
+        <pathelement location="jars/jetty-http-9.4.25.v20191220.jar"/>
+        <pathelement location="jars/jetty-io-9.4.25.v20191220.jar"/>
+        <pathelement location="jars/jetty-security-9.4.25.v20191220.jar"/>
+        <pathelement location="jars/jetty-server-9.4.25.v20191220.jar"/>
+        <pathelement location="jars/jetty-servlet-9.4.25.v20191220.jar"/>
+        <pathelement location="jars/jetty-util-9.4.25.v20191220.jar"/>
+        <pathelement location="jars/jsch-0.1.55.jar"/>
+        <pathelement location="jars/json-20190722.jar"/>
+        <pathelement location="jars/json-simple-1.1.1.jar"/>
+        <pathelement location="jars/jzlib-1.1.1.jar"/>
+        <pathelement location="jars/log4j-1.2.15.jar"/>
+        <pathelement location="jars/org.eclipse.jgit.archive-5.7.0.202003110725-r.jar"/>
+        <pathelement location="jars/org.eclipse.jgit.http.apache-5.7.0.202003110725-r.jar"/>
+        <pathelement location="jars/org.eclipse.jgit.lfs.server-5.7.0.202003110725-r.jar"/>
+        <pathelement location="jars/org.eclipse.jgit.lfs-5.7.0.202003110725-r.jar"/>
+        <pathelement location="jars/org.eclipse.jgit.pgm-5.7.0.202003110725-r.jar"/>
+        <pathelement location="jars/org.eclipse.jgit.ssh.apache-5.7.0.202003110725-r.jar"/>
+        <pathelement location="jars/org.eclipse.jgit.ui-5.7.0.202003110725-r.jar"/>
+        <pathelement location="jars/org.eclipse.jgit-5.7.0.202003110725-r.jar"/>
+        <pathelement location="jars/org.osgi.core-4.3.1.jar"/>
+        <pathelement location="jars/slf4j-api-1.7.2.jar"/>
+        <pathelement location="jars/slf4j-api-1.7.25.jar"/>
+        <pathelement location="jars/slf4j-log4j12-1.7.2.jar"/>
+        <pathelement location="jars/SMOTE.jar"/>
+        <pathelement location="jars/sshd-common-2.2.0.jar"/>
+        <pathelement location="jars/sshd-core-2.2.0.jar"/>
+        <pathelement location="jars/sshd-osgi-2.2.0.jar"/>
+        <pathelement location="jars/sshd-sftp-2.2.0.jar"/>
+        <pathelement location="jars/weka.jar"/>
+    </path>
+    <path id="run.MainCreateDataset (2).classpath">
+        <path refid="Deliverable2.classpath"/>
+        <pathelement location="jars/args4j-2.33.jar"/>
+        <pathelement location="jars/bcpg-jdk15on-1.64.jar"/>
+        <pathelement location="jars/bcpkix-jdk15on-1.64.jar"/>
+        <pathelement location="jars/bcprov-jdk15on-1.64.jar"/>
+        <pathelement location="jars/commons-codec-1.11.jar"/>
+        <pathelement location="jars/commons-collections4-4.0.jar"/>
+        <pathelement location="jars/commons-compress-1.19.jar"/>
+        <pathelement location="jars/commons-lang3-3.10.jar"/>
+        <pathelement location="jars/commons-logging-1.2.jar"/>
+        <pathelement location="jars/eddsa-0.3.0.jar"/>
+        <pathelement location="jars/gson-2.8.2.jar"/>
+        <pathelement location="jars/httpclient-4.5.10.jar"/>
+        <pathelement location="jars/httpcore-4.4.12.jar"/>
+        <pathelement location="jars/JavaEWAH-1.1.7.jar"/>
+        <pathelement location="jars/javax.servlet-api-3.1.0.jar"/>
+        <pathelement location="jars/jetty-http-9.4.25.v20191220.jar"/>
+        <pathelement location="jars/jetty-io-9.4.25.v20191220.jar"/>
+        <pathelement location="jars/jetty-security-9.4.25.v20191220.jar"/>
+        <pathelement location="jars/jetty-server-9.4.25.v20191220.jar"/>
+        <pathelement location="jars/jetty-servlet-9.4.25.v20191220.jar"/>
+        <pathelement location="jars/jetty-util-9.4.25.v20191220.jar"/>
+        <pathelement location="jars/jsch-0.1.55.jar"/>
+        <pathelement location="jars/json-20190722.jar"/>
+        <pathelement location="jars/json-simple-1.1.1.jar"/>
+        <pathelement location="jars/jzlib-1.1.1.jar"/>
+        <pathelement location="jars/log4j-1.2.15.jar"/>
+        <pathelement location="jars/org.eclipse.jgit.archive-5.7.0.202003110725-r.jar"/>
+        <pathelement location="jars/org.eclipse.jgit.http.apache-5.7.0.202003110725-r.jar"/>
+        <pathelement location="jars/org.eclipse.jgit.lfs.server-5.7.0.202003110725-r.jar"/>
+        <pathelement location="jars/org.eclipse.jgit.lfs-5.7.0.202003110725-r.jar"/>
+        <pathelement location="jars/org.eclipse.jgit.pgm-5.7.0.202003110725-r.jar"/>
+        <pathelement location="jars/org.eclipse.jgit.ssh.apache-5.7.0.202003110725-r.jar"/>
+        <pathelement location="jars/org.eclipse.jgit.ui-5.7.0.202003110725-r.jar"/>
+        <pathelement location="jars/org.eclipse.jgit-5.7.0.202003110725-r.jar"/>
+        <pathelement location="jars/org.osgi.core-4.3.1.jar"/>
+        <pathelement location="jars/slf4j-api-1.7.2.jar"/>
+        <pathelement location="jars/slf4j-api-1.7.25.jar"/>
+        <pathelement location="jars/slf4j-log4j12-1.7.2.jar"/>
+        <pathelement location="jars/SMOTE.jar"/>
+        <pathelement location="jars/sshd-common-2.2.0.jar"/>
+        <pathelement location="jars/sshd-core-2.2.0.jar"/>
+        <pathelement location="jars/sshd-osgi-2.2.0.jar"/>
+        <pathelement location="jars/sshd-sftp-2.2.0.jar"/>
+        <pathelement location="jars/weka.jar"/>
+    </path>
+    <path id="run.MainAnalizeDataset.classpath">
+        <path refid="Deliverable2.classpath"/>
+        <pathelement location="jars/args4j-2.33.jar"/>
+        <pathelement location="jars/bcpg-jdk15on-1.64.jar"/>
+        <pathelement location="jars/bcpkix-jdk15on-1.64.jar"/>
+        <pathelement location="jars/bcprov-jdk15on-1.64.jar"/>
+        <pathelement location="jars/commons-codec-1.11.jar"/>
+        <pathelement location="jars/commons-collections4-4.0.jar"/>
+        <pathelement location="jars/commons-compress-1.19.jar"/>
+        <pathelement location="jars/commons-lang3-3.10.jar"/>
+        <pathelement location="jars/commons-logging-1.2.jar"/>
+        <pathelement location="jars/eddsa-0.3.0.jar"/>
+        <pathelement location="jars/gson-2.8.2.jar"/>
+        <pathelement location="jars/httpclient-4.5.10.jar"/>
+        <pathelement location="jars/httpcore-4.4.12.jar"/>
+        <pathelement location="jars/JavaEWAH-1.1.7.jar"/>
+        <pathelement location="jars/javax.servlet-api-3.1.0.jar"/>
+        <pathelement location="jars/jetty-http-9.4.25.v20191220.jar"/>
+        <pathelement location="jars/jetty-io-9.4.25.v20191220.jar"/>
+        <pathelement location="jars/jetty-security-9.4.25.v20191220.jar"/>
+        <pathelement location="jars/jetty-server-9.4.25.v20191220.jar"/>
+        <pathelement location="jars/jetty-servlet-9.4.25.v20191220.jar"/>
+        <pathelement location="jars/jetty-util-9.4.25.v20191220.jar"/>
+        <pathelement location="jars/jsch-0.1.55.jar"/>
+        <pathelement location="jars/json-20190722.jar"/>
+        <pathelement location="jars/json-simple-1.1.1.jar"/>
+        <pathelement location="jars/jzlib-1.1.1.jar"/>
+        <pathelement location="jars/log4j-1.2.15.jar"/>
+        <pathelement location="jars/org.eclipse.jgit.archive-5.7.0.202003110725-r.jar"/>
+        <pathelement location="jars/org.eclipse.jgit.http.apache-5.7.0.202003110725-r.jar"/>
+        <pathelement location="jars/org.eclipse.jgit.lfs.server-5.7.0.202003110725-r.jar"/>
+        <pathelement location="jars/org.eclipse.jgit.lfs-5.7.0.202003110725-r.jar"/>
+        <pathelement location="jars/org.eclipse.jgit.pgm-5.7.0.202003110725-r.jar"/>
+        <pathelement location="jars/org.eclipse.jgit.ssh.apache-5.7.0.202003110725-r.jar"/>
+        <pathelement location="jars/org.eclipse.jgit.ui-5.7.0.202003110725-r.jar"/>
+        <pathelement location="jars/org.eclipse.jgit-5.7.0.202003110725-r.jar"/>
+        <pathelement location="jars/org.osgi.core-4.3.1.jar"/>
+        <pathelement location="jars/slf4j-api-1.7.2.jar"/>
+        <pathelement location="jars/slf4j-api-1.7.25.jar"/>
+        <pathelement location="jars/slf4j-log4j12-1.7.2.jar"/>
+        <pathelement location="jars/SMOTE.jar"/>
+        <pathelement location="jars/sshd-common-2.2.0.jar"/>
+        <pathelement location="jars/sshd-core-2.2.0.jar"/>
+        <pathelement location="jars/sshd-osgi-2.2.0.jar"/>
+        <pathelement location="jars/sshd-sftp-2.2.0.jar"/>
+        <pathelement location="jars/weka.jar"/>
+    </path>
+    <target name="init">
+        <mkdir dir="bin"/>
+        <copy includeemptydirs="false" todir="bin">
+            <fileset dir="src">
+                <exclude name="**/*.launch"/>
+                <exclude name="**/*.java"/>
+            </fileset>
+        </copy>
+    </target>
+    <target name="clean">
+        <delete dir="bin"/>
+    </target>
+    <target depends="clean" name="cleanall"/>
+    <target depends="build-subprojects,build-project" name="build"/>
+    <target name="build-subprojects"/>
+    <target depends="init" name="build-project">
+        <echo message="${ant.project.name}: ${ant.file}"/>
+        <javac debug="true" debuglevel="${debuglevel}" destdir="bin" includeantruntime="false" source="${source}" target="${target}">
+            <src path="src"/>
+            <classpath refid="Deliverable2.classpath"/>
+        </javac>
+    </target>
+    <target description="Build all projects which reference this project. Useful to propagate changes." name="build-refprojects"/>
+    <target description="copy Eclipse compiler jars to ant lib directory" name="init-eclipse-compiler">
+        <copy todir="${ant.library.dir}">
+            <fileset dir="${ECLIPSE_HOME}/plugins" includes="org.eclipse.jdt.core_*.jar"/>
+        </copy>
+        <unzip dest="${ant.library.dir}">
+            <patternset includes="jdtCompilerAdapter.jar"/>
+            <fileset dir="${ECLIPSE_HOME}/plugins" includes="org.eclipse.jdt.core_*.jar"/>
+        </unzip>
+    </target>
+    <target description="compile project with Eclipse compiler" name="build-eclipse-compiler">
+        <property name="build.compiler" value="org.eclipse.jdt.core.JDTCompilerAdapter"/>
+        <antcall target="build"/>
+    </target>
+    <target name="MainCreateDataset (2)">
+        <java classname="main.MainCreateDataset" failonerror="true" fork="yes">
+            <classpath refid="run.MainCreateDataset (2).classpath"/>
+        </java>
+    </target>
+    <target name="MainAnalizeDataset">
+        <java classname="main.MainAnalizeDataset" failonerror="true" fork="yes">
+            <classpath refid="run.MainAnalizeDataset.classpath"/>
+        </java>
+    </target>
+</project>

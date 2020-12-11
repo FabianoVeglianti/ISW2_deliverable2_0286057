@@ -20,7 +20,7 @@ import jirapkg.TicketJira;
 public class MainCreateDataset {
 
 	private static String[] a ={"SYNCOPE", "syncope-"};
-//	private static String[] a = {"BOOKKEEPER", "release-"};
+//	other project variables private static String[] a = {"BOOKKEEPER", "release-"};
 
 	
 	public static void main(String[] args) {
@@ -36,15 +36,12 @@ public class MainCreateDataset {
 		
 		//ottieni le release
 		logger.log(Level.INFO,"Retrieving releases information from Jira...");
-		ArrayList<ReleaseJira> releases = jirapi.getReleases();
-		
-		for (ReleaseJira release:releases) {
-			System.out.println(release.toString());
-		}
+		ArrayList<ReleaseJira> releases = (ArrayList<ReleaseJira>) jirapi.getReleases();
+
 		
 		//ottieni i tickets
-		ArrayList<TicketJira> tickets = new ArrayList<TicketJira>();
-		ArrayList<Bug> bugs = new ArrayList<Bug>();
+		ArrayList<TicketJira> tickets = new ArrayList<>();
+		ArrayList<Bug> bugs = new ArrayList<>();
 		logger.log(Level.INFO,"Retrieving tickets info from Jira...");
 		jirapi.getTicketsInfo(bugs, tickets, releases.get(releases.size()-1));
 
@@ -59,26 +56,24 @@ public class MainCreateDataset {
 		
 		//ottieni i commits
 		logger.log(Level.INFO,"Retrieving releases info from Github...");
-		ArrayList<GitRelease> gitReleases = githubapi.getReleases();
+		ArrayList<GitRelease> gitReleases = (ArrayList<GitRelease>) githubapi.getReleases();
 		for (GitRelease release: gitReleases) {
-			if(release.getName().startsWith(prefix) || release.getName().startsWith(prefix)) {
+			if(release.getName().startsWith(prefix)) {
 				release.setName(release.getName().substring(prefix.length()));
 			}
 		}
-		gitReleases = githubapi.fixGitReleaseList(gitReleases, releases);
+		gitReleases = (ArrayList<GitRelease>) githubapi.fixGitReleaseList(gitReleases, releases);
 		
 		logger.log(Level.INFO,"Retrieving commits info from Jira...");
-		ArrayList<GitCommit> commits = githubapi.getCommits2(gitReleases);
+		ArrayList<GitCommit> commits = (ArrayList<GitCommit>) githubapi.getCommits2(gitReleases);
 		
 		
 		ProportionMovingWindow proportion = new ProportionMovingWindow(releases.size(), bugs.size());
 		
-		//da cancellare
-		int count = 0;
-		//da cancellare 
+
 		
 		logger.log(Level.INFO,"Setting IV, OV and FV for each bug...");
-		ArrayList<Bug> bugsWithNoCommit = new ArrayList<Bug>();
+		ArrayList<Bug> bugsWithNoCommit = new ArrayList<>();
 		for(Bug bug:bugs) {
 
 			bug.setCommitList(commits);
@@ -86,7 +81,6 @@ public class MainCreateDataset {
 			// se bug.getLastCommit() == null allora significa che non c'è nemmeno un commit per quel bug
 			if(bug.getLastCommit()==null) {
 				bugsWithNoCommit.add(bug);
-				count = count + 1;
 			} else {
 			
 			
@@ -101,37 +95,13 @@ public class MainCreateDataset {
 			}
 		}
 		
-		// da cancellare
-		int numBugsBeforeRemotion = bugs.size();
-		// da cancellare fine
+		
 		
 		for(Bug bugWithNoCommit:bugsWithNoCommit) {
 			bugs.remove(bugWithNoCommit);
 			
 		}
 
-		//da cancellare 
-		System.out.println("#Bugs prima della rimozione = " + numBugsBeforeRemotion + "."
-				+ " Count = " + count + ". #Bugs dopo rimozione = " + bugs.size());
-		//da cancellare 
-		
-		
-
-		
-
-		
-		
-		
-		
-		System.out.println("\nReleaseJira");
-		for(ReleaseJira releaseJira:releases) {
-			System.out.println("ID=" + releaseJira.getID() + " - Nome="+ releaseJira.getName());
-		}
-
-		System.out.println("\nReleaseGit");
-		for(GitRelease gitRelease:gitReleases) {
-			System.out.println("ID=" + gitRelease.getID() + " - Nome="+ gitRelease.getName());
-		}
 		
 		for (GitRelease release: gitReleases) {
 			githubapi.setClassesRelease(release);
@@ -146,7 +116,6 @@ public class MainCreateDataset {
 		try {
 			csvWriter.writeDatasetCSV(gitReleases);
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		

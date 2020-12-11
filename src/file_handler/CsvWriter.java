@@ -4,7 +4,7 @@ import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 
 import analysis.Result;
@@ -26,7 +26,7 @@ public class CsvWriter {
 		this.percentageToPrint = percentageToPrint;
 	}
 	
-	public void writeDatasetCSV(ArrayList<GitRelease> releases) throws IOException {
+	public void writeDatasetCSV(List<GitRelease> releases) throws IOException {
 		String filename = projName + ".csv";
 		
 		FileWriter fw = new FileWriter(filename, true);
@@ -50,7 +50,7 @@ public class CsvWriter {
 				+ "buggy");
 		
 		for (int i = 0; i < releases.size()*percentageToPrint; i++) {
-			System.out.println(i+1);
+	
 			GitRelease release = releases.get(i);
 			int count = 0;
 			for(ClassProject classProject: release.getClasses().values()) {
@@ -70,7 +70,7 @@ public class CsvWriter {
 				}
 				
 			}
-			System.out.println("Per la release con ID i+1=" + release.getID()+ " ci sono " + count + " classi." );
+	
 			
 		}
 		pw.flush();
@@ -78,7 +78,7 @@ public class CsvWriter {
 	
 	}
 	
-	public void writeResultCSV(ArrayList<Result> results) throws IOException {
+	public void writeResultCSV(List<Result> results) throws IOException {
 		String filename = projName + "Result.csv";
 		
 		FileWriter fw = new FileWriter(filename, true);

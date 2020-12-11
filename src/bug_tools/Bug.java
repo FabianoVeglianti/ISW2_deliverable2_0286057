@@ -2,7 +2,9 @@ package bug_tools;
 
 import java.util.ArrayList;
 import java.util.Date;
-
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import date_tools.DateCreator;
 import githubpkg.GitCommit;
 import jirapkg.ReleaseJira;
@@ -10,50 +12,52 @@ import jirapkg.TicketJira;
 
 
 public class Bug {
+	private static final String ERRORMESSAGE = " ERRORE FATALE\nIl programma verrà chiuso.";
+	private Logger mylogger = Logger.getLogger(Bug.class.getName());
 
 	private String ticketID;
 	private ArrayList<GitCommit> commitList;
-	private String IV;
-	private String OV;
-	private String FV;
-	private ArrayList<String> AV;
+	private String iv;
+	private String ov;
+	private String fv;
+	private ArrayList<String> av;
 	
-	public ArrayList<String> getAV(){
-		return AV;
+	public List<String> getAV(){
+		return av;
 	}
 	
 	public Bug(String ticketID) {
 		this.setTicketID(ticketID);
-		commitList = new ArrayList<GitCommit>();
-		AV = new ArrayList<String>();
+		commitList = new ArrayList<>();
+		av = new ArrayList<>();
 	}
 
 	public String getTicketID() {
 		return ticketID;
 	}
 	
-	public void setIV(String IV) {
-		this.IV = IV;
+	public void setIV(String iv) {
+		this.iv = iv;
 	}
 	
-	public void setOV(String OV) {
-		this.OV = OV;
+	public void setOV(String ov) {
+		this.ov = ov;
 	}
 	
-	public void setFV(String FV) {
-		this.FV = FV;
+	public void setFV(String fv) {
+		this.fv = fv;
 	}
 	
 	public String getIV() {
-		return this.IV;
+		return this.iv;
 	}
 	
 	public String getOV() {
-		return this.OV;
+		return this.ov;
 	}
 	
 	public String getFV() {
-		return this.FV;
+		return this.fv;
 	}
 
 	public void setTicketID(String ticketID) {
@@ -64,13 +68,13 @@ public class Bug {
 		commitList.add(commit);
 	}
 	
-	public void setCommitList(ArrayList<GitCommit> commitList) {
+	public void setCommitList(List<GitCommit> commitList) {
 		boolean match = false;
 		//associa ad un bug la lista dei commit in cui compare il ticket relativo a quel bug
 		for(GitCommit commit: commitList) {
 		
-			String ticketID = this.getTicketID();
-			match = commit.hasTicketID(ticketID);
+			String myTicketID = this.getTicketID();
+			match = commit.hasTicketID(myTicketID);
 			
 			
 			if (match) {
@@ -79,15 +83,10 @@ public class Bug {
 			} 
 
 		}
-		
-		if (!match) {
-			System.out.println(ticketID + " " + match);
-		}
-		
-		
+
 	}
 	
-	public static void reverseArrayList(ArrayList<Bug> arraylist) {
+	public static void reverseArrayList(List<Bug> arraylist) {
 		int size = arraylist.size();
 		for (int i = 0; i<size/2; i++) {
 			Bug temp = arraylist.get(i);
@@ -110,7 +109,7 @@ public class Bug {
 	}
 
 
-	public void setOpeningVersion(TicketJira ticket, ArrayList<ReleaseJira> releases, ReleaseJira FV) {
+	public void setOpeningVersion(TicketJira ticket, List<ReleaseJira> releases, ReleaseJira fv) {
 		
 		Date creationDate = ticket.getCreationDate();
 		
@@ -131,10 +130,10 @@ public class Bug {
 			
 		}
 		
-		if(openingVersion.getReleaseDate().after(FV.getReleaseDate())) {
-			OV = FV.getName();
+		if(openingVersion.getReleaseDate().after(fv.getReleaseDate())) {
+			ov = fv.getName();
 		} else {
-			OV = openingVersionName;
+			ov = openingVersionName;
 		}
 	}
 	
@@ -145,42 +144,31 @@ public class Bug {
 	 * */
 	private boolean jiraDataOk(ArrayList<ReleaseJira> releases) {
 	
-		ReleaseJira IVrelease = ReleaseJira.getReleaseByName(releases, IV);
-		ReleaseJira OVrelease = ReleaseJira.getReleaseByName(releases, OV);
-		ReleaseJira FVrelease = ReleaseJira.getReleaseByName(releases, FV);
+		ReleaseJira ivRelease = ReleaseJira.getReleaseByName(releases, iv);
+		ReleaseJira ovRelease = ReleaseJira.getReleaseByName(releases, ov);
+		ReleaseJira fvRelease = ReleaseJira.getReleaseByName(releases, fv);
 		
 
-		if(OV.equalsIgnoreCase(FV)) {
+		if(ov.equalsIgnoreCase(fv)) {
 			// OV = FV
 			
-			if(IVrelease.getReleaseDate().before(OVrelease.getReleaseDate())) {
-				//IV < OV = FV
-				return true;
-			} else {
-				//IV = OV = FV oppure IV > OV = FV
-				return false;
-			}
+			//true se IV < OV = FV - false se IV = OV = FV oppure IV > OV = FV
+			return ivRelease.getReleaseDate().before(ovRelease.getReleaseDate());
+			
 			
 		} else {
 			// OV != FV
 			
 			
-			if( OVrelease.getReleaseDate().after(FVrelease.getReleaseDate()) ){
+			if( ovRelease.getReleaseDate().after(fvRelease.getReleaseDate()) ){
 				// OV > FV
-				System.out.println("OV: "+ OVrelease.getName() + " FV: " + FVrelease.getName());
-				System.out.println("OV: "+ OVrelease.getReleaseDate().toString() + " FV: " + FVrelease.getReleaseDate().toString());
-				System.out.println(this.getTicketID() + " ERRORE FATALE");
+				String msg = this.getTicketID() + ERRORMESSAGE;
+				mylogger.log(Level.SEVERE, msg);
 				System.exit(0);
 			}
 			
 			// OV < FV => true if IV <= OV else false
-			if( !(IVrelease.getReleaseDate().after(OVrelease.getReleaseDate())) ){
-				//IV <= OV
-				return true;
-			} else {
-				//IV > OV
-				return false;
-			}
+			return !(ivRelease.getReleaseDate().after(ovRelease.getReleaseDate()));
 			
 		}
 	
@@ -190,37 +178,38 @@ public class Bug {
 	//aggiorna la finestra di proportion
 	private void setVersionsFromJiraData(TicketJira ticket, ArrayList<ReleaseJira> releases, ProportionMovingWindow proportion) {
 		
-		int IVindex = 0;
-		int OVindex = 0;
-		int FVindex = 0;
+		int ivIndex = 0;
+		int ovIndex = 0;
+		int fvIndex = 0;
 		int index = 1;
 		for (ReleaseJira release: releases) {
-			if(release.getName().equalsIgnoreCase(IV)) {
-				IVindex = release.getID();
+			if(release.getName().equalsIgnoreCase(iv)) {
+				ivIndex = release.getID();
 			}
-			if(release.getName().equalsIgnoreCase(OV)) {
-				OVindex = release.getID();
+			if(release.getName().equalsIgnoreCase(ov)) {
+				ovIndex = release.getID();
 			}
-			if(release.getName().equalsIgnoreCase(FV)) {
-				FVindex = release.getID();
+			if(release.getName().equalsIgnoreCase(fv)) {
+				fvIndex = release.getID();
 				break;
 			}
 			index = index + 1;
 		}
 		
-		if (OVindex > FVindex) {
-			System.out.println(ticket.getTicketID() + " ERRORE FATALE");
+		if (ovIndex > fvIndex) {
+			String msg = ticket.getTicketID() + ERRORMESSAGE;
+			mylogger.log(Level.SEVERE, msg);
 			System.exit(0);
 		}
 		
 		
-		for (int i = IVindex; i< FVindex; i++) {
-			AV.add(ReleaseJira.getReleaseByID(releases, i).getName());
+		for (int i = ivIndex; i< fvIndex; i++) {
+			av.add(ReleaseJira.getReleaseByID(releases, i).getName());
 		}
 		
 		
-		if(OVindex != FVindex) {
-			proportion.updateWindow(IVindex, OVindex, FVindex);
+		if(ovIndex != fvIndex) {
+			proportion.updateWindow(ivIndex, ovIndex, fvIndex);
 		}
 		
 	}
@@ -228,61 +217,61 @@ public class Bug {
 	//l'OV e la FV sono settate: applica proportion per calcolare l' IV
 	private void setVersionsUsingProportion(TicketJira ticket, ArrayList<ReleaseJira> releases, ProportionMovingWindow proportion) {
 		
-		int OVindex = 0;
-		int FVindex = 0;
+		int ovIndex = 0;
+		int fvIndex = 0;
 		int index = 1;
 		for (ReleaseJira release: releases) {
-			if(release.getName().equalsIgnoreCase(OV)) {
-				OVindex = index;
+			if(release.getName().equalsIgnoreCase(ov)) {
+				ovIndex = index;
 			}
-			if(release.getName().equalsIgnoreCase(FV)) {
-				FVindex = index;
+			if(release.getName().equalsIgnoreCase(fv)) {
+				fvIndex = index;
 				break;
 			}
 			index = index + 1;
 		}
 
 		
-		if (OVindex > FVindex) {
-			System.out.println(ticket.getTicketID() + " ERRORE FATALE");
+		if (ovIndex > fvIndex) {
+			String msg = ticket.getTicketID() + ERRORMESSAGE;
+			mylogger.log(Level.SEVERE, msg);
 			System.exit(0);
 		}
 		
-		int IVindex = proportion.predictIVindex(OVindex, FVindex);
+		int ivIndex = proportion.predictIVindex(ovIndex, fvIndex);
 	
-		IV = releases.get(IVindex).getName();
+		iv = releases.get(ivIndex).getName();
 		
-		for (int i = IVindex; i< FVindex; i++) {
-			AV.add(releases.get(i).getName());
+		for (int i = ivIndex; i< fvIndex; i++) {
+			av.add(releases.get(i).getName());
 		}
 		
 	}
 	
-	public void setVersions(TicketJira ticket, ArrayList<ReleaseJira> releases, ProportionMovingWindow proportion) {
+	public void setVersions(TicketJira ticket, List<ReleaseJira> releases, ProportionMovingWindow proportion) {
 		
-		System.out.println(ticket.getTicketID() +" " + OV + " " + FV + " " + ticket.getCreationDate().toString());
 		
 		if(ticket.hasAV()) {
 			//se su jira sono presenti AV
 			
-			IV = ticket.getInjectedVersion(releases);
+			iv = ticket.getInjectedVersion((ArrayList<ReleaseJira>) releases);
 			
-			boolean result = this.jiraDataOk(releases);
-			System.out.println(result);
+			boolean result = this.jiraDataOk((ArrayList<ReleaseJira>) releases);
+
 		
 			if(result) {
 				//se l'IV è prima della OV, cioè i dati in jira sono coerenti, allora li uso
-				this.setVersionsFromJiraData(ticket, releases, proportion);
+				this.setVersionsFromJiraData(ticket, (ArrayList<ReleaseJira>) releases, proportion);
 			
 			} else {
 				//se l'IV è uguale o successiva alla OV allora devo usare proportion
-				this.setVersionsUsingProportion(ticket, releases, proportion);
+				this.setVersionsUsingProportion(ticket, (ArrayList<ReleaseJira>) releases, proportion);
 			
 			}
 		
 		} else {
 			//se su jira non sono presenti AV devo usare proportion
-			this.setVersionsUsingProportion(ticket, releases, proportion);
+			this.setVersionsUsingProportion(ticket, (ArrayList<ReleaseJira>) releases, proportion);
 			
 		}
 				

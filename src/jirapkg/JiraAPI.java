@@ -6,9 +6,10 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.net.URL;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -22,34 +23,32 @@ import java.util.Comparator;
 import java.util.Date;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-/*
-import org.json.JSONException;
-import org.json.JSONObject;
-import org.json.JSONArray;
-*/
+
 import java.time.ZoneId;
 
 
 
 
 public class JiraAPI {
-	private final String url = "https://issues.apache.org/jira/rest/api/2/project/";
+	private static final String RELEASED = "released";
+	private static final String FIELDS = "fields";
+	private static final String URL = "https://issues.apache.org/jira/rest/api/2/project/";
 	private String projectName;
 
 	public JiraAPI(String projectName) {
 		this.projectName = projectName;
 	}
 	
-	public ArrayList<ReleaseJira> getReleases(){
+	public List<ReleaseJira> getReleases(){
 		// Fills the arraylist with releases dates and orders them
 				// Ignores releases with missing dates
 				// Adds an extra release called nextRelease
 				
 
-				ArrayList<ReleaseJira> releasesJira = new ArrayList<ReleaseJira>();
+				ArrayList<ReleaseJira> releasesJira = new ArrayList<>();
 				
 				Integer i;
-				String projectURL = url + projectName;
+				String projectURL = URL + projectName;
 				JSONArray versions = new JSONArray();
 				try {
 					JSONObject json = readJsonFromUrl(projectURL);
@@ -58,21 +57,11 @@ public class JiraAPI {
 					e.printStackTrace();
 				}
 
-
-				//da eliminare inizio
-				System.out.println(versions.length());
-				for (i = 0; i < versions.length(); i++) {
-					System.out.println(versions.getJSONObject(i).toString());
-					System.out.println(versions.getJSONObject(i).has("releaseDate"));
-					System.out.println(versions.getJSONObject(i).has("name"));
-					System.out.println(versions.getJSONObject(i).has("id"));
-				}
-				//da eliminare fine
 				for (i = 0; i < versions.length(); i++) {
 					String name = "";
 
 					try {
-						if (versions.getJSONObject(i).has("releaseDate") && versions.getJSONObject(i).getBoolean("released")==true) {
+						if (versions.getJSONObject(i).has("releaseDate") && versions.getJSONObject(i).getBoolean(RELEASED)) {
 							if (versions.getJSONObject(i).has("name"))
 								name = versions.getJSONObject(i).get("name").toString();
 
@@ -96,6 +85,8 @@ public class JiraAPI {
 					}
 				});
 				
+	
+				
 				int index = 1;
 				for (int j = 0; j < releasesJira.size(); j++) {
 					releasesJira.get(j).setID(index);
@@ -108,14 +99,10 @@ public class JiraAPI {
 
 	private JSONObject readJsonFromUrl(String projectURL) throws IOException, JSONException {
 		InputStream is = new URL(projectURL).openStream();
-		try {
-			BufferedReader rd = new BufferedReader(new InputStreamReader(is, Charset.forName("UTF-8")));
-			String jsonText = readAll(rd);
-			JSONObject json = new JSONObject(jsonText);
-			return json;
-		} finally {
-			is.close();
-		}
+		BufferedReader rd = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8));
+		String jsonText = readAll(rd);
+		is.close();
+		return new JSONObject(jsonText);
 	}
 
 	private String readAll(Reader rd) throws IOException {
@@ -127,13 +114,14 @@ public class JiraAPI {
 		return sb.toString();
 	}
 
-	public void getTicketsInfo(ArrayList<Bug> bugs, ArrayList<TicketJira> tickets, ReleaseJira lastRelease){
+	public void getTicketsInfo(List<Bug> bugs, List<TicketJira> tickets, ReleaseJira lastRelease){
 
-		
-//		myLogger.info("Parsing fixed bug from Jira ...");
 		JSONObject json = null;
 		JSONArray issues = null;
-		Integer j = 0, i = 0, total = 1;
+		Integer j = 0;
+		Integer i = 0;
+		Integer total = 1;
+		
 		do {
 			// Only gets a max of 1000 at a time, so must do this multiple times if bugs
 			// >1000
@@ -157,25 +145,25 @@ public class JiraAPI {
 			for (; i < total && i < j; i++) {
 				// Iterate through each bug
 				String key = null;
-				ArrayList<String> versions = new ArrayList<String>();
-				ArrayList<String> fixVersions = new ArrayList<String>();
+				ArrayList<String> versions = new ArrayList<>();
+				ArrayList<String> fixVersions = new ArrayList<>();
 //ricavare anche le altre informazioni e metterle in ticketJira - la classe ticket Jira mi serve solo come
 //classe d'appoggio per i dati che poi userò nella classe bug
 				
 				JSONObject issue = issues.getJSONObject(i % 1000);
 				key = issue.get("key").toString();
-				JSONArray versionsInJSON = issue.getJSONObject("fields").getJSONArray("versions");
-				JSONArray fixVersionsInJSON =  issue.getJSONObject("fields").getJSONArray("fixVersions");
+				JSONArray versionsInJSON = issue.getJSONObject(FIELDS).getJSONArray("versions");
+				JSONArray fixVersionsInJSON =  issue.getJSONObject(FIELDS).getJSONArray("fixVersions");
 				
 				//get and parse resolution date and creation date
-				String resolutionDateString = issue.getJSONObject("fields").getString("resolutiondate");
+				String resolutionDateString = issue.getJSONObject(FIELDS).getString("resolutiondate");
 				Date resolutionDate = DateStringParser.getDateFromString(resolutionDateString);  		
-				String creationDateString = issue.getJSONObject("fields").getString("created");
+				String creationDateString = issue.getJSONObject(FIELDS).getString("created");
 				Date creationDate = DateStringParser.getDateFromString(creationDateString);
 						
 				for (int k = 0; k<versionsInJSON.length(); k++) {
 					JSONObject version = versionsInJSON.getJSONObject(k);
-					if(version.getBoolean("released")) {
+					if(version.getBoolean(RELEASED)) {
 						versions.add(version.get("name").toString());
 						
 						
@@ -183,7 +171,7 @@ public class JiraAPI {
 				}
 				for (int s = 0; s<fixVersionsInJSON.length();s++) {
 					JSONObject fixVersion = fixVersionsInJSON.getJSONObject(s);
-					if(fixVersion.getBoolean("released")) {
+					if(fixVersion.getBoolean(RELEASED)) {
 						fixVersions.add(fixVersion.get("name").toString());
 					}
 				}
@@ -206,7 +194,7 @@ public class JiraAPI {
 			}
 		} while (i < total);
 	
-		TicketJira.reverseArrayList(tickets);
+		TicketJira.reverseArrayList((ArrayList<TicketJira>) tickets);
 		Bug.reverseArrayList(bugs);
 		
 	}
@@ -225,29 +213,21 @@ public class JiraAPI {
 	 *
 	 * Vengono mantenuti i dati dei bugs per cui OV != FV oppure OV == FV e IV < OV.
 	 */
-	public void removeUnusableBugs(ArrayList<Bug> bugs, ArrayList<TicketJira> tickets, ArrayList<ReleaseJira> releases) {
-		ArrayList<Bug> toRemove = new ArrayList<Bug>();
+	public void removeUnusableBugs(List<Bug> bugs, List<TicketJira> tickets, List<ReleaseJira> releases) {
+		ArrayList<Bug> toRemove = new ArrayList<>();
 		Iterator<Bug> iterator = bugs.iterator();
 		
 		//per ogni bug setto OV e FV, quando OV==FV controllo se la lista delle AV non è vuota e in tal
 		//caso se l'IV è precedente all'OV/FV, se si allora mantengo il bug, se no allora elimino il bug.
 		
-		// da cancellare inizio
-		int contatoreOVugualeFV = 0;
-		int contatoreOVdiversoFV = 0;
-		int contatoreIVassenteOVugualeFV = 0;
-		int contatoreIVpresenteOVugualeFV = 0;
-		int contatoreIVpresenteOVugualeFVeIVprecedenteOV = 0;
-		int contatoreIVpresenteOVugualeFVeIVmaggugualeOV = 0;
-		//da cancellare fine
 		
 		while(iterator.hasNext()) {
 			Bug bug = iterator.next();
 			
-			TicketJira ticket = TicketJira.searchTicketByID(tickets, bug.getTicketID());
+			TicketJira ticket = TicketJira.searchTicketByID((ArrayList<TicketJira>) tickets, bug.getTicketID());
 
 			bug.setFV(ticket.getFixedVersions().get(0));
-			bug.setOpeningVersion(ticket, releases, ReleaseJira.getReleaseByName(releases, bug.getFV()));
+			bug.setOpeningVersion(ticket, releases, ReleaseJira.getReleaseByName((ArrayList<ReleaseJira>) releases, bug.getFV()));
 			
 			
 			
@@ -255,43 +235,28 @@ public class JiraAPI {
 			if ( !(bug.getOV().equalsIgnoreCase(bug.getFV())) ) {
 				//se OV != FV
 				
-				// da cancellare inizio
-				contatoreOVdiversoFV = contatoreOVdiversoFV + 1;
-				//da cancellare fine
 				
-				continue;
 			} else {
 				//se OV == FV
 				
-				// da cancellare inizio
-				contatoreOVugualeFV = contatoreOVugualeFV +1;
-				// da cancellare fine
 				
 				if(ticket.hasAV()) {
-					
-					// da cancellare inizio
-					contatoreIVpresenteOVugualeFV = contatoreIVpresenteOVugualeFV +1;
-					// da cancellare fine
+			
 					
 					//Jira ha dati sulle AV, ma devo vedere se l'IV è precedente alla OV
-					String IV = ticket.getInjectedVersion(releases);
+					String IV = ticket.getInjectedVersion((ArrayList<ReleaseJira>) releases);
 					
-					ReleaseJira IVrelease = ReleaseJira.getReleaseByName(releases, IV);
-					ReleaseJira OVrelease = ReleaseJira.getReleaseByName(releases, bug.getOV());
+					ReleaseJira IVrelease = ReleaseJira.getReleaseByName((ArrayList<ReleaseJira>) releases, IV);
+					ReleaseJira OVrelease = ReleaseJira.getReleaseByName((ArrayList<ReleaseJira>) releases, bug.getOV());
 					
 					if(IVrelease.getReleaseDate().before(OVrelease.getReleaseDate())){
 						//se IV < OV=FV allora mantengo il bug
-						// da cancellare inizio
-						contatoreIVpresenteOVugualeFVeIVprecedenteOV = contatoreIVpresenteOVugualeFVeIVprecedenteOV +1;
-						//da cancellare fine
+						
 						continue;
 					
 					} else {
 						//se IV >= OV=FV allora elimino il bug perché è come se fossi nel caso
 						//OV = FV e lista delle AV in jira non presente
-						// da cancellare inizio
-						contatoreIVpresenteOVugualeFVeIVmaggugualeOV = contatoreIVpresenteOVugualeFVeIVmaggugualeOV +1;
-						//da cancellare fine
 						tickets.remove(ticket);
 						toRemove.add(bug);
 					}
@@ -299,9 +264,6 @@ public class JiraAPI {
 				} else {
 					//Jira non ha dati sull'AV del bug, quindi elimino il bug
 					
-					// da cancellare inizio
-					contatoreIVassenteOVugualeFV = contatoreIVassenteOVugualeFV +1;
-					// da cancellare fine
 					
 					tickets.remove(ticket);
 					toRemove.add(bug);
@@ -310,41 +272,10 @@ public class JiraAPI {
 			}
 			
 		}
-	
-		System.out.println("contatoreOVugualeFV: " + contatoreOVugualeFV + "\n"
-				+ "contatoreOVdiversoFV: " + contatoreOVdiversoFV +"\n"
-						+ "contatoreIVassenteOVugualeFV: " + contatoreIVassenteOVugualeFV + "\n"
-								+ "contatoreIVpresenteOVugualeFV: " + contatoreIVpresenteOVugualeFV + "\n"
-										+ "contatoreIVpresenteOVugualeFVeIVprecedenteOV: " + contatoreIVpresenteOVugualeFVeIVprecedenteOV + "\n"
-												+ "contatoreIVpresenteOVugualeFVeIVmaggugualeOV" + contatoreIVpresenteOVugualeFVeIVmaggugualeOV);
 		
 		for (Bug bugToRemove: toRemove) {
 			bugs.remove(bugToRemove);
 		}
-		
-	}
-	
-	
-		
-	public static void main(String[] args) {
-		JiraAPI jirapi= new JiraAPI("VCL");
-	
-		ArrayList<ReleaseJira> releases = jirapi.getReleases();
-		
-		for (ReleaseJira release:releases) {
-			System.out.println(release.toString());
-		}
-		
-		ArrayList<Bug> bugs = new ArrayList<Bug>();
-		ArrayList<TicketJira> tickets = new ArrayList<TicketJira>();
-		jirapi.getTicketsInfo(bugs, tickets, releases.get(releases.size()-1));
-		for (Bug bug:bugs) {
-			System.out.println(bug.getTicketID());
-		}
-		
-	
-		
-		
 		
 	}
 	

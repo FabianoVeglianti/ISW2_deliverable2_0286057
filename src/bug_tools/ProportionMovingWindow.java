@@ -40,10 +40,10 @@ public class ProportionMovingWindow {
 	
 	//aggiorna la finestra: scorre avanti di una posizione e sostituisce il valore contenuto in questa 
 	//posizione con il valore di P per il bug corrente
-	public void updateWindow(int IVindex, int OVindex, int FVindex) {
+	public void updateWindow(int ivIndex, int ovIndex, int fvIndex) {
 		index = (index+1)%windowSize;
-		if (FVindex - OVindex != 0) {
-			double currentP = ((double)(FVindex - IVindex))/((double)(FVindex - OVindex));
+		if (fvIndex - ovIndex != 0) {
+			double currentP = ((double)(fvIndex - ivIndex))/((double)(fvIndex - ovIndex));
 			windowP[index] = currentP;
 		} else {
 			double currentP = 1;
@@ -56,7 +56,7 @@ public class ProportionMovingWindow {
 		
 	}
 	
-	public int predictIVindex(int OVindex, int FVindex) {
+	public int predictIVindex(int ovIndex, int fvIndex) {
 		double p = 0;
 		
 		if (isWindowFull) {
@@ -75,7 +75,7 @@ public class ProportionMovingWindow {
 
 		}
 
-		double doublePredictedIVindex = (double)(FVindex - p * (double)(FVindex - OVindex));
+		double doublePredictedIVindex = (double)fvIndex - p * (double)(fvIndex - ovIndex);
 		int predictedIVindex = (int) Math.round(doublePredictedIVindex);
 
 		

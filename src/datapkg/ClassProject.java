@@ -1,7 +1,7 @@
 package datapkg;
 
-import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 import bug_tools.Diff;
 import date_tools.DateComputer;
@@ -63,7 +63,7 @@ public class ClassProject {
 	}
 	
 	
-	public static ClassProject getClassProjectByName(ArrayList<ClassProject> classes, String name) {
+	public static ClassProject getClassProjectByName(List<ClassProject> classes, String name) {
 		for (ClassProject classProject: classes) {
 			if (classProject.getThisName().equalsIgnoreCase(name)){
 				return classProject;
@@ -129,7 +129,7 @@ public class ClassProject {
 	}
 
 	public ClassProject renameThisClass(String newName) {
-		if(this.thisNameIsOld == true) {
+		if(this.thisNameIsOld) {
 			return this.getNewClassProject();
 		}
 		
@@ -160,14 +160,13 @@ public class ClassProject {
 		this.oldClassProject = otherClass.oldClassProject;
 		
 		//devo aggiornare le misure
-		Measure measure = this.getMeasure();
-		measure.setLocTouched(otherClass.getMeasure().getLocTouched());
-		measure.setLocAdded(otherClass.getMeasure().getLocAdded());
-		measure.setMaxLocAdded(otherClass.getMeasure().getMaxLocAdded());
-		measure.setAvgLocAdded(otherClass.getMeasure().getAvgLocAdded());
-		measure.setChurn(otherClass.getMeasure().getChurn());
-		measure.setMaxChurn(otherClass.getMeasure().getMaxChurn());
-		measure.setAvgChurn(otherClass.getMeasure().getAvgChurn());
+		this.getMeasure().setLocTouched(otherClass.getMeasure().getLocTouched());
+		this.getMeasure().setLocAdded(otherClass.getMeasure().getLocAdded());
+		this.getMeasure().setMaxLocAdded(otherClass.getMeasure().getMaxLocAdded());
+		this.getMeasure().setAvgLocAdded(otherClass.getMeasure().getAvgLocAdded());
+		this.getMeasure().setChurn(otherClass.getMeasure().getChurn());
+		this.getMeasure().setMaxChurn(otherClass.getMeasure().getMaxChurn());
+		this.getMeasure().setAvgChurn(otherClass.getMeasure().getAvgChurn());
 		
 	}
 	

@@ -1,15 +1,16 @@
 package analysis;
 
+import weka.classifiers.evaluation.Evaluation;
 import weka.core.Instance;
 import weka.core.Instances;
 
 
 public class Result {
 	
-	double TP;
-	double FP;
-	double TN;
-	double FN;
+	double tp;
+	double fp;
+	double tn;
+	double fn;
 	double precision;
 	double recall;
 	double auc;
@@ -31,7 +32,7 @@ public class Result {
 		
 		int numInstancesTraining = training.numInstances();
 		int numInstancesTest = test.numInstances();
-		this.percentageTraining = (double)((double)numInstancesTraining/(double)(numInstancesTraining+numInstancesTest));
+		this.percentageTraining = (double)numInstancesTraining/(double)(numInstancesTraining+numInstancesTest);
 		
 		int numBuggyTraining = 0;
 		int numFeatures = training.numAttributes();
@@ -90,40 +91,40 @@ public class Result {
 		return percentageBuggyInTesting;
 	}
 
-	public void Buggy(double percentageBuggyInTesting) {
+	public void setPercentageBuggyInTesting(double percentageBuggyInTesting) {
 		this.percentageBuggyInTesting = percentageBuggyInTesting;
 	}
 
 	public double getTP() {
-		return TP;
+		return tp;
 	}
 
 	public void setTP(double tP) {
-		TP = tP;
+		tp = tP;
 	}
 
 	public double getFP() {
-		return FP;
+		return fp;
 	}
 
 	public void setFP(double fP) {
-		FP = fP;
+		fp = fP;
 	}
 
 	public double getTN() {
-		return TN;
+		return tn;
 	}
 
 	public void setTN(double tN) {
-		TN = tN;
+		tn = tN;
 	}
 
 	public double getFN() {
-		return FN;
+		return fn;
 	}
 
 	public void setFN(double fN) {
-		FN = fN;
+		fn = fN;
 	}
 
 	public double getPrecision() {
@@ -158,16 +159,15 @@ public class Result {
 		this.kappa = kappa;
 	}
 
-	public void setValues(double tP, double fP, double tN, double fN, double precision, double recall, double auc,
-			double kappa) {
-		TP = tP;
-		FP = fP;
-		TN = tN;
-		FN = fN;
-		this.precision = precision;
-		this.recall = recall;
-		this.auc = auc;
-		this.kappa = kappa;
+	public void setValues(Evaluation eval, int positiveResultIndex) {
+		tp = eval.numTruePositives(positiveResultIndex);
+		fp = eval.numFalsePositives(positiveResultIndex);
+		tn = eval.numTrueNegatives(positiveResultIndex);
+		fn = eval.numFalseNegatives(positiveResultIndex);
+		this.precision = eval.precision(positiveResultIndex);
+		this.recall = eval.recall(positiveResultIndex);
+		this.auc = eval.areaUnderROC(positiveResultIndex);
+		this.kappa = eval.kappa();
 	}
 	
 	public Result(String classifierName, String featureSelectionName, String resamplingMethodName) {
@@ -178,12 +178,12 @@ public class Result {
 	}
 	
 	public Result() {
-		// TODO Auto-generated constructor stub
+		// empty constructor
 	}
 
 	public String toString() {
 		String str = "";
-		str = str + "TP: " + TP + " - FP: "+ FP + "\nFN: "+ FN + " - TN: " + TN+ "\n"
+		str = str + "TP: " + tp + " - FP: "+ fp + "\nFN: "+ fn + " - TN: " + tn+ "\n"
 				+ "precision: " + precision +"\nrecall: " + recall + "\nauc: "+ auc +"\nkappa: "+ kappa;
 		return str;
 	}

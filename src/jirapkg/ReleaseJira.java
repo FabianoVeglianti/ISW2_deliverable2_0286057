@@ -1,19 +1,19 @@
 package jirapkg;
 
-import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 public class ReleaseJira {
-	private int ID;
+	private int id;
 	private String name;
 	private Date releaseDate;
 	
 	public int getID() {
-		return ID;
+		return id;
 	}
 	
 	public void setID(int iD) {
-		ID = iD;
+		id = iD;
 	}
 	
 	public String getName() {
@@ -38,7 +38,7 @@ public class ReleaseJira {
 		return "ID = " + integerID.toString() + "; name = " + getName() + "; release date = " + getReleaseDate().toString() + ".";
 	}
 	
-	public static ReleaseJira getReleaseByName(ArrayList<ReleaseJira> releases, String name) {
+	public static ReleaseJira getReleaseByName(List<ReleaseJira> releases, String name) {
 		for (ReleaseJira release:releases) {
 			if (release.getName().equalsIgnoreCase(name)) {
 				return release;
@@ -48,7 +48,7 @@ public class ReleaseJira {
 		return null;
 	}
 	
-	public static ReleaseJira getReleaseByID(ArrayList<ReleaseJira> releases, int id) {
+	public static ReleaseJira getReleaseByID(List<ReleaseJira> releases, int id) {
 		for (ReleaseJira release:releases) {
 			if (release.getID() == id) {
 				return release;
@@ -58,7 +58,7 @@ public class ReleaseJira {
 		return null;
 	}
 	
-	public static void reverseArrayList(ArrayList<ReleaseJira> arraylist) {
+	public static void reverseArrayList(List<ReleaseJira> arraylist) {
 		int size = arraylist.size();
 		for (int i = 0; i<size/2; i++) {
 			ReleaseJira temp = arraylist.get(i);

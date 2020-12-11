@@ -3,6 +3,8 @@ package githubpkg;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import org.eclipse.jgit.lib.ObjectId;
 
@@ -11,7 +13,7 @@ import datapkg.ClassProject;
 
 
 public class GitRelease {
-	private int ID;
+	private int id;
 	private ObjectId releaseID; //id del commit relativo alla release
 	private String name;
 	private HashMap<String, ClassProject> classes;
@@ -19,15 +21,15 @@ public class GitRelease {
 	private Date date;
 	
 	public GitRelease() {
-		classes = new HashMap<String, ClassProject>();
+		classes = new HashMap<>();
 	}
 	
 	public int getID() {
-		return ID;
+		return id;
 	}
 	
-	public void setID(int ID) {
-		this.ID = ID;
+	public void setID(int id) {
+		this.id = id;
 	}
 	
 	public ObjectId getReleaseID() {
@@ -46,7 +48,7 @@ public class GitRelease {
 		this.name = name;
 	}
 	 
-	public HashMap<String, ClassProject> getClasses(){
+	public Map<String, ClassProject> getClasses(){
 		return this.classes;
 	}
 	
@@ -57,7 +59,7 @@ public class GitRelease {
 		} else {
 			int size = existsClass.getMeasure().getSize();
 			boolean classTakenFromCommit = existsClass.isClassTakenFromCommit();
-			classProject.getMeasure().setSize(size);;
+			classProject.getMeasure().setSize(size);
 			classProject.setClassTakenFromCommit(classTakenFromCommit);
 			this.classes.remove(existsClass.getThisName());
 			this.classes.put(classProject.getThisName(), classProject);
@@ -70,14 +72,12 @@ public class GitRelease {
 		
 		if(existsClass == null) {
 			classes.put(classProject.getThisName(), classProject);
-			return;
 		} else {
 			existsClass.updateClassUsing(classProject);
-			return;
 		}
 	}
 	
-	public static void reverseArrayList(ArrayList<GitRelease> arraylist) {
+	public static void reverseArrayList(List<GitRelease> arraylist) {
 		int size = arraylist.size();
 		for (int i = 0; i<size/2; i++) {
 			GitRelease temp = arraylist.get(i);
@@ -86,7 +86,7 @@ public class GitRelease {
 		}
 	}
 	
-	public static GitRelease getReleaseByName(ArrayList<GitRelease> releases, String name) {
+	public static GitRelease getReleaseByName(List<GitRelease> releases, String name) {
 		for (GitRelease release: releases) {
 			if(release.getName().equalsIgnoreCase(name)) {
 				return release;
@@ -103,12 +103,12 @@ public class GitRelease {
 		this.date = date;
 	}
 
-	public ArrayList<GitCommit> getRevisions() {
+	public List<GitCommit> getRevisions() {
 		return revisions;
 	}
 
-	public void setRevisions(ArrayList<GitCommit> revisions) {
-		this.revisions = revisions;
+	public void setRevisions(List<GitCommit> revisions) {
+		this.revisions = (ArrayList<GitCommit>) revisions;
 	}
 	
 	public ClassProject getClassByName(String className) {

@@ -63,9 +63,7 @@ public class GitCommit {
 		int checkIndex = index + ticketID.length();
 		IntegerTool it = new IntegerTool();
 		if (checkIndex < message.length()) {
-			if (it.isNumeric(message.substring(checkIndex, checkIndex + 1))) {
-				return false;
-			} 
+			return !(it.isNumeric(message.substring(checkIndex, checkIndex + 1)));
 		}
 		
 		return true;

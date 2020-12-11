@@ -5,6 +5,10 @@ import java.util.Date;
 
 public class DateCreator {
 	
+	private DateCreator() {
+		//private constructor
+	}
+	
 	public static Date getTomorrow() {
 		// get a calendar instance, which defaults to "now"
 	    Calendar calendar = Calendar.getInstance();
@@ -13,11 +17,9 @@ public class DateCreator {
 	    // add one day to the date/calendar
 	    calendar.add(Calendar.DAY_OF_YEAR, 1);
 	    
-	    // now get "tomorrow"
-	    Date tomorrow = calendar.getTime();
+	    // get and returns "tomorrow" 
+	    return calendar.getTime();
 
-	    // returns tomorrow
-	   return tomorrow;
 	}
 
 	public static Date getOldDate() {
@@ -27,11 +29,10 @@ public class DateCreator {
 	    // add one day to the date/calendar
 	    calendar.set(1971, 01, 01);
 	    
-	    // now get an "old date"
-	    Date oldDate = calendar.getTime();
+	    // now get and returns an "old date"
+	    return calendar.getTime();
 
-	    // returns tomorrow
-	   return oldDate;
+
 	}
 
 	public static Date getFutureDate() {
@@ -41,11 +42,8 @@ public class DateCreator {
 	    // add one day to the date/calendar
 	    calendar.set(2071, 01, 01);
 	    
-	    // now get an "old date"
-	    Date futureDate = calendar.getTime();
-
-	    // returns tomorrow
-	   return futureDate;
+	    // now get and returns a "future date"
+	    return calendar.getTime();
 	}
 	
 	

@@ -4,6 +4,9 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import date_tools.DateCreator;
 
@@ -11,7 +14,7 @@ import date_tools.DateCreator;
  * Classe per mantenere le informazioni di interesse dei ticket presi da Jira
  * */
 public class TicketJira {
-
+	private Logger mylogger = Logger.getLogger(TicketJira.class.getName());
 	private String ticketID;
 	private ArrayList<String> affectedVersions;
 	private ArrayList<String> fixedVersions;
@@ -26,18 +29,18 @@ public class TicketJira {
 		this.ticketID = ticketID;
 	}
 	
-	public ArrayList<String> getAffectedVersions() {
+	public List<String> getAffectedVersions() {
 		return affectedVersions;
 	}
-	public void setAffectedVersions(ArrayList<String> affectedVersions) {
-		this.affectedVersions = affectedVersions;
+	public void setAffectedVersions(List<String> affectedVersions) {
+		this.affectedVersions = (ArrayList<String>) affectedVersions;
 	}
 	
-	public ArrayList<String> getFixedVersions() {
+	public List<String> getFixedVersions() {
 		return fixedVersions;
 	}
-	public void setFixedVersions(ArrayList<String> fixedVersions) {
-		this.fixedVersions = fixedVersions;
+	public void setFixedVersions(List<String> fixedVersions) {
+		this.fixedVersions = (ArrayList<String>) fixedVersions;
 	}
 	
 	public Date getCreationDate() {
@@ -56,7 +59,7 @@ public class TicketJira {
 	}
 	
 	public boolean hasAV() {
-		return this.affectedVersions.size()>0;
+		return !this.affectedVersions.isEmpty();
 	}
 	
 	public String toString() {
@@ -66,21 +69,21 @@ public class TicketJira {
 		result = result + "ResolutionDate: " + this.resolutionDate.toString() + "\n";
 		result = result + "affectedVersions:\n";
 		for (String affectedVersion:this.affectedVersions) {
-			result = result + "\t" + affectedVersion + "\n";
+			result = result.concat("\t" + affectedVersion + "\n");
 		}
 		result = result + "fixedVersions:\n";
 		for (int i = 0; i < fixedVersions.size(); i++) {
 			String fixedVersion = fixedVersions.get(i);
 			if (i < fixedVersions.size()-1) {
-				result = result + "\t" + fixedVersion + "\n";
+				result = result.concat("\t" + fixedVersion + "\n");
 			} else {
-				result = result + "\t" + fixedVersion;
+				result = result.concat("\t" + fixedVersion);
 			}
 		}
 		return result;
 	}
 	
-	public static void reverseArrayList(ArrayList<TicketJira> arraylist) {
+	public static void reverseArrayList(List<TicketJira> arraylist) {
 		int size = arraylist.size();
 		for (int i = 0; i<size/2; i++) {
 			TicketJira temp = arraylist.get(i);
@@ -89,8 +92,8 @@ public class TicketJira {
 		}
 	}
 	
-	public String getInjectedVersion(ArrayList<ReleaseJira> releases) {
-		HashMap<String, Date> mapVersionameDate= new HashMap<String,Date>();
+	public String getInjectedVersion(List<ReleaseJira> releases) {
+		HashMap<String, Date> mapVersionameDate= new HashMap<>();
 		
 		/*
 		 * Per ogni affected version (release) ottenuta da Jira mi salvo la corrispondente data nella mappa
@@ -129,8 +132,8 @@ public class TicketJira {
 				 * Se la release è sconosciuta allora è successo qualcosa di inaspettato
 				 * tipicamente un errore umano nell'inserimento dei dati.
 				 */
-				System.out.println(this.toString());
-				System.out.println(e.getMessage());
+				e.printStackTrace();
+				mylogger.log(Level.WARNING, "I risultati ottenuti potrebbero non essere esatti!");
 
 				 
 			}
@@ -139,9 +142,9 @@ public class TicketJira {
 		//prendo la versione più vecchia contenuta in mapVersionameDate
 		String injectedVersion = "";
 		Date oldDate = DateCreator.getOldDate();
-		
-		for (String key:mapVersionameDate.keySet()) {
-			Date versionDate = mapVersionameDate.get(key);
+		for(HashMap.Entry<String,Date> mapVersionameDateEntry: mapVersionameDate.entrySet()) {
+			String key = mapVersionameDateEntry.getKey();
+			Date versionDate = mapVersionameDateEntry.getValue();
 			if(versionDate.after(oldDate)) {
 				oldDate = versionDate;
 				injectedVersion = key;
@@ -161,10 +164,10 @@ public class TicketJira {
 	 * di risoluzione del ticket
 	 * nel secondo caso (numero di fixed versions >=2) si setta come FV la più vecchia tra queste release
 	 * */
-	public void fixData(ArrayList<ReleaseJira> releases) {
+	public void fixData(List<ReleaseJira> releases) {
 
 		
-		if (fixedVersions.size()==0) {
+		if (fixedVersions.isEmpty()) {
 			
 			if(resolutionDate.compareTo(releases.get(0).getReleaseDate()) <=0) {
 				fixedVersions.add(releases.get(0).getName());
@@ -179,9 +182,9 @@ public class TicketJira {
 					}
 				}
 			}
-		} else if (fixedVersions.size() >= 1) {
+		} else {
 			
-			HashMap<String, Date> mapVersionameDate= new HashMap<String,Date>();
+			HashMap<String, Date> mapVersionameDate= new HashMap<>();
 			
 			/*
 			 * Per ogni fixed version (release) ottenuta da Jira mi salvo la corrispondente data nella mappa
@@ -221,7 +224,6 @@ public class TicketJira {
 					 * In fase di ottenimento dei dati si sono già scartati i bug per cui resolutionDate
 					 * è successiva all'ultima release
 					 * */
-					System.out.println("Fixed version sconosciuta per " + this.ticketID);
 					for (int i = 0; i < fixedVersions.size(); i++) {
 						fixedVersions.remove(0);
 					}
@@ -241,7 +243,8 @@ public class TicketJira {
 			//prendo la versione più vecchia contenuta in mapVersionameDate
 			String fixedVersion = "";
 			Date oldDate = DateCreator.getOldDate();
-			for (String key:mapVersionameDate.keySet()) {
+			for(HashMap.Entry<String,Date> mapVersionameDateEntry: mapVersionameDate.entrySet()) {
+				String key = mapVersionameDateEntry.getKey();
 				Date versionDate = mapVersionameDate.get(key);
 				if(versionDate.after(oldDate)) {
 					oldDate = versionDate;
@@ -260,8 +263,8 @@ public class TicketJira {
 		}
 	}
 	
-	public static TicketJira searchTicketByID(ArrayList<TicketJira> tickets, String ticketID) {
-		if (tickets.size()>0) {
+	public static TicketJira searchTicketByID(List<TicketJira> tickets, String ticketID) {
+		if (!tickets.isEmpty()) {
 			
 			for (TicketJira ticket:tickets) {
 				if(ticket.getTicketID().equalsIgnoreCase(ticketID)) {

@@ -3,6 +3,7 @@ package githubpkg;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -13,15 +14,14 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
-//import java.util.logging.Logger;
 import java.util.TreeSet;
-
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.ListBranchCommand.ListMode;
 import org.eclipse.jgit.api.LogCommand;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.InvalidRemoteException;
-import org.eclipse.jgit.api.errors.NoHeadException;
 import org.eclipse.jgit.api.errors.TransportException;
 import org.eclipse.jgit.diff.DiffEntry;
 import org.eclipse.jgit.diff.DiffFormatter;
@@ -45,10 +45,11 @@ import measurements.Measure;
 
 
 public class GitHubAPI {
-
-//	private static Logger myLogger = Logger.getLogger("InfoLogging");
+	private static final String EXT = ".java";
+	Logger mylogger = Logger.getLogger(GitHubAPI.class.getName());
+	private static final String WARNINGMESSAGE = "Il risultato del programma potrebbe non essere esatto.";
 	private String projNameMin;
-	private final String url = "https://github.com/apache/";
+	private static final String URL = "https://github.com/apache/";
 	private Git git;
 	private String repoLocalPath;
 	
@@ -69,7 +70,7 @@ public class GitHubAPI {
 	}
 	
 	public void init() {
-		String uri = url + projNameMin + ".git";
+		String uri = URL + projNameMin + ".git";
 		try {
 			
 			if (!Files.exists(Paths.get(repoLocalPath)) || this.isEmpty(Paths.get(repoLocalPath))) {
@@ -81,16 +82,17 @@ public class GitHubAPI {
 			}
 		
 		} catch (InvalidRemoteException e) {
-			System.out.println("e1");
 			e.printStackTrace();
+			mylogger.log(Level.WARNING, WARNINGMESSAGE);
 		} catch (TransportException e) {
-			System.out.println("e2");
 			e.printStackTrace();
+			mylogger.log(Level.WARNING, WARNINGMESSAGE);
 		} catch (GitAPIException e) {
-			System.out.println("e3");
 			e.printStackTrace();
+			mylogger.log(Level.WARNING, WARNINGMESSAGE);
 		} catch (IOException e) {
 			e.printStackTrace();
+			mylogger.log(Level.WARNING, WARNINGMESSAGE);
 		}
 	}
 	
@@ -99,10 +101,8 @@ public class GitHubAPI {
 		    List<Ref> branches = git.branchList().setListMode(ListMode.ALL).call();
 			for (Ref branch: branches) {
 				String branchName = branch.getName();
-				System.out.println(branchName);
 				if (branchName.startsWith("refs/heads/")) {
 					int startIndex = "refs/heads/".length();
-					System.out.println("Default branch name: " + branchName);
 					return branchName.substring(startIndex);
 				}
 			}
@@ -115,8 +115,8 @@ public class GitHubAPI {
 	}
 	
 	
-	public ArrayList<GitCommit> getCommits(){
-		ArrayList<GitCommit> commits = new ArrayList<GitCommit>();  
+	public List<GitCommit> getCommits(){
+		ArrayList<GitCommit> commits = new ArrayList<>();  
 	    Iterable<RevCommit> iterableCommits = null;
 	 
 	    try {
@@ -145,8 +145,8 @@ public class GitHubAPI {
 	    return commits;
 	}
 	
-	public ArrayList<GitCommit> getCommits2(ArrayList<GitRelease> releases){
-	ArrayList<GitCommit> commits = new ArrayList<GitCommit>();  
+	public List<GitCommit> getCommits2(List<GitRelease> releases){
+	ArrayList<GitCommit> commits = new ArrayList<>();  
 		
 	for(int i = 0; i < releases.size(); i ++) {
 		if (i==0) {
@@ -160,61 +160,60 @@ public class GitHubAPI {
 	}
 	
 	
-	public ArrayList<GitRelease> getReleases() {
+	public List<GitRelease> getReleases() {
 		
 		ArrayList<GitRelease> releases = new ArrayList<GitRelease>();
-		
+		List<Ref> tagList = null;
 		try {
 			//ottiene la lista dei tag
 			//https://www.html.it/pag/55386/tag-e-alias-in-git/#:~:text=Sostanzialmente%20in%20Git%20con%20il,versione%20%E2%80%9C1.0%E2%80%9D%20di%20un'
-			List<Ref> tagList = git.tagList().call();
-		
-			//ottiene un walk sul grafo dei commit
-			RevWalk walk = new RevWalk(this.git.getRepository());
-			
-			for (Ref tag: tagList) {
-				//i tag sono del formato /ref/tags/releasename
-				String tagName = tag.getName();
-				String releaseName = tagName.substring("/ref/tags/".length());
-				RevCommit commit = null;
-				
-				try {
-					commit = walk.parseCommit(tag.getObjectId());
-				} catch (MissingObjectException e) {
-					e.printStackTrace();
-				} catch (IncorrectObjectTypeException e) {
-					e.printStackTrace();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-				//da cancellare inizio
-				Date date = new Date(commit.getCommitTime() *1000L);
-				System.out.println(date.toString() + " " + releaseName);
-				//da cancellare fine
-				
-				GitRelease release = new GitRelease();
-				release.setReleaseID(commit.getId());
-				release.setName(releaseName);
-				release.setDate(date);
-				releases.add(release);
-			}
-			walk.close();
-		
-			return releases;
+			tagList = git.tagList().call();
 		
 		} catch (GitAPIException e) {
 			e.printStackTrace();
 		}
 		
+		//ottiene un walk sul grafo dei commit
+		RevWalk walk = new RevWalk(this.git.getRepository());
+			
+		for (Ref tag: tagList) {
+			//i tag sono del formato /ref/tags/releasename
+			String tagName = tag.getName();
+			String releaseName = tagName.substring("/ref/tags/".length());
+			RevCommit commit = null;
+			
+			try {
+				commit = walk.parseCommit(tag.getObjectId());
+			} catch (MissingObjectException e) {
+				e.printStackTrace();
+			} catch (IncorrectObjectTypeException e) {
+				e.printStackTrace();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			//da cancellare inizio
+			Date date = new Date(commit.getCommitTime() *1000L);
+			//da cancellare fine
+			
+			GitRelease release = new GitRelease();
+			release.setReleaseID(commit.getId());
+			release.setName(releaseName);
+			release.setDate(date);
+			releases.add(release);
+		}
+		walk.close();
+	
 		return releases;
+		
+	
 		
 	}
 	
 	/**La lista delle release in Git è più grande della lista delle release in Jira
 	 * dunque per ogni release presa da Jira ci teniamo la corrispondente release presa da Git*/
-	public ArrayList<GitRelease> fixGitReleaseList(ArrayList<GitRelease> gitReleases, ArrayList<ReleaseJira> jiraReleases) {
-	//	ReleaseJira.reverseArrayList(jiraReleases);
-		ArrayList<GitRelease> releases = new ArrayList<GitRelease>();
+	public List<GitRelease> fixGitReleaseList(List<GitRelease> gitReleases, List<ReleaseJira> jiraReleases) {
+	
+		ArrayList<GitRelease> releases = new ArrayList<>();
 		
 		for (ReleaseJira releaseJira:jiraReleases) {
 			
@@ -226,21 +225,16 @@ public class GitHubAPI {
 						&& !releaseGit.getName().contains("docker")) {
 					int index = releaseGit.getName().indexOf(releaseJira.getName());
 
-					if (index != -1) {
-						if((releaseGit.getName().length()==releaseJira.getName().length()) && releaseGit.getName().contains(releaseJira.getName())) {
+					if (index != -1 && releaseGit.getName().length()==releaseJira.getName().length() && releaseGit.getName().contains(releaseJira.getName())) {
 							releaseGit.setID(releaseJira.getID());
 							releases.add(releaseGit);
 							iterator.remove();
-						}
 					}
 				}
 				
 			}
 		}
-	//	ReleaseJira.reverseArrayList(jiraReleases);
-		
-		
-	//	GitRelease.reverseArrayList(releases);
+
 		return releases;
 	}
 	
@@ -265,14 +259,14 @@ public class GitHubAPI {
 			treeWalk.setRecursive(true);
 			while (treeWalk.next()) {
 				String path = treeWalk.getPathString();
-			    if (path.contains(".java")) {
+			    if (path.contains(EXT)) {
 			    	ClassProject classProject = new ClassProject(path, release.getName(), true);
 			    
 			    	//setta la size della classe
 			    	ObjectId objectId = treeWalk.getObjectId(0);
 			    	ObjectReader reader = this.git.getRepository().newObjectReader();
 			    	byte[] data = reader.open(objectId).getBytes();
-		            String content = new String(data, "utf-8");
+		            String content = new String(data, StandardCharsets.UTF_8);
 		            classProject.getMeasure().setSizeFromContent(content);
 		            
 		            
@@ -280,11 +274,9 @@ public class GitHubAPI {
 			    }
 			    
 			}
-			if(release.getClasses().size() == 0) {
-				System.out.println("Per la release " + release.getName() + " non si trovano classi.");
-			} else {
-				System.out.println("Per la release " + release.getName() + " si hanno "+ release.getClasses().size() + " classi.");
-			}
+			
+			System.out.println("Per la release " + release.getName() + " si hanno "+ release.getClasses().size() + " classi."); //salvare il risultato e poi cancellarla
+			
 			revWalk.dispose();
 		} catch (IOException e ) {
 			e.printStackTrace();
@@ -340,7 +332,7 @@ public class GitHubAPI {
 		
 		GitCommit commit = bug.getLastCommit();
 		
-		ArrayList<Diff> diffList = new ArrayList<Diff>();
+		ArrayList<Diff> diffList = new ArrayList<>();
 		
 		try {
 			DiffFormatter diffFormatter = new DiffFormatter(DisabledOutputStream.INSTANCE);
@@ -366,7 +358,7 @@ public class GitHubAPI {
 					formatter.format(diffEntry);
 			        String diffText = outputStream.toString();
 			        
-			        if( diffEntry.getOldPath().contains(".java") && diffEntry.getNewPath().contains(".java")) {
+			        if( diffEntry.getOldPath().contains(EXT) && diffEntry.getNewPath().contains(EXT)) {
 			        	Diff diff = parseDiffEntry(diffEntry, diffText);
 	
 			        	diffList.add(diff);
@@ -378,7 +370,6 @@ public class GitHubAPI {
 			formatter.close();
 			
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		
@@ -386,44 +377,8 @@ public class GitHubAPI {
 			
 	
 	}
-/*	
-	public HashMap<Bug, Diff> addDiffForBug(ArrayList<Bug> bugs, ArrayList<GitRelease> releases){
-		HashMap<Bug, Diff> bugDiffMap = new HashMap<Bug, Diff>();
-		
-		for (Bug bug: bugs) {
-			
-			ArrayList<Diff> diffList = getClassChanges(bug);
-			ArrayList<String> AV = bug.getAV();
-			
-			for (String affectedVersionName : AV) {
-				
-				GitRelease affectedVersion = GitRelease.getReleaseByName(releases, affectedVersionName);
-//				System.out.println("Versione: " + affectedVersionName);
-				ArrayList<ClassProject> classes = affectedVersion.getClasses();
-						
-				for (Diff diff: diffList) {
-					String className = diff.getOldPath();
-					ClassProject classProject = ClassProject.getClassProjectByName(classes, className);
-//					System.out.println("AV: " + affectedVersion.getName() + "\nClasse: " + className);
-					
-					if (classProject != null) {			
-						classProject.setDiff(diff);
-						classProject.setBugginess(true);
-						classProject.getMeasure().increaseBugFixes();
-					}
-				}
-				
-			}
-			
-		}
-
-		
-		
-		return bugDiffMap;
-	}
-*/	
 	
-	public void setRevisionsForRelease(ArrayList<GitCommit> commits, ArrayList<GitRelease> releases) {
+	public void setRevisionsForRelease(List<GitCommit> commits, List<GitRelease> releases) {
 		//aggiunge ad ogni release una lista ordinata di revisioni (commit) tra quella release e 
 		//la release precedente
 		
@@ -438,7 +393,7 @@ public class GitHubAPI {
 		int index = 0;
 		for(GitRelease release:releases) {
 			
-			ArrayList<GitCommit> revisions = new ArrayList<GitCommit>();
+			ArrayList<GitCommit> revisions = new ArrayList<>();
 			
 			while(commits.get(index).getDate().compareTo(release.getDate())<=0) {
 				revisions.add(commits.get(index));
@@ -452,7 +407,7 @@ public class GitHubAPI {
 	}
 	
 	
-	public ArrayList<GitCommit> getRevisionsBetweenTwoRelease(ObjectId startRelease, ObjectId endRelease) {
+	public List<GitCommit> getRevisionsBetweenTwoRelease(ObjectId startRelease, ObjectId endRelease) {
 		
 		LogCommand logCommand = this.git.log();
 
@@ -464,21 +419,11 @@ public class GitHubAPI {
 				logCommand = logCommand.addRange(startRelease, endRelease);
 			commits = logCommand.call();
 			
-		} catch (NoHeadException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (GitAPIException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (MissingObjectException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IncorrectObjectTypeException e) {
-			// TODO Auto-generated catch block
+		} catch (GitAPIException | MissingObjectException | IncorrectObjectTypeException e) {
 			e.printStackTrace();
 		}
 		
-		ArrayList<GitCommit> commitList = new ArrayList<GitCommit>();
+		ArrayList<GitCommit> commitList = new ArrayList<>();
 		for (RevCommit commit : commits) {
 			
 			ObjectId commitID = commit.getId();
@@ -494,30 +439,30 @@ public class GitHubAPI {
 	    	GitCommit gitCommit = new  GitCommit(commitID, date, parentID, message);
 	    	commitList.add(0,gitCommit);
 		}
-		System.out.println("numero revisioni: " + commitList.size());
+
 		return commitList;
 
 	}
 	
 	
-	public void setRevisionsForRelease(ArrayList<GitRelease> releases) {
+	public void setRevisionsForRelease(List<GitRelease> releases) {
 			
 		for(int i = 0; i < releases.size(); i ++) {
 			if (i==0) {
-				releases.get(i).setRevisions(this.getRevisionsBetweenTwoRelease(null, releases.get(i).getReleaseID()));
+				releases.get(i).setRevisions((ArrayList<GitCommit>) this.getRevisionsBetweenTwoRelease(null, releases.get(i).getReleaseID()));
 			} else {
-				releases.get(i).setRevisions(this.getRevisionsBetweenTwoRelease(releases.get(i-1).getReleaseID(), releases.get(i).getReleaseID()));
+				releases.get(i).setRevisions((ArrayList<GitCommit>) this.getRevisionsBetweenTwoRelease(releases.get(i-1).getReleaseID(), releases.get(i).getReleaseID()));
 			}
 		}
 		
 	}
 		
-	public void setBugginess(ArrayList<Bug> bugs, ArrayList<GitRelease> releases) {
+	public void setBugginess(List<Bug> bugs, List<GitRelease> releases) {
 		
 		for (Bug bug: bugs) {	
 			
 			ArrayList<Diff> diffList = getClassChanges(bug);
-			ArrayList<String> AV = bug.getAV();
+			ArrayList<String> av = (ArrayList<String>) bug.getAV();
 			
 			/*
 			 * Per ogni diff inizio cercando il nome del file modificato nel diff nell'ultima AV
@@ -529,11 +474,11 @@ public class GitHubAPI {
 			 * */
 			for(Diff diff: diffList) {
 				String className = diff.getOldPath();
-				TreeSet<String> classNameHistory = new TreeSet<String>();
-				for(int i = AV.size()-1; i>=0; i--) {
+				TreeSet<String> classNameHistory = new TreeSet<>();
+				for(int i = av.size()-1; i>=0; i--) {
 					
-					String affectedVersionName = AV.get(i);
-					GitRelease affectedVersion = GitRelease.getReleaseByName(releases, affectedVersionName);
+					String affectedVersionName = av.get(i);
+					GitRelease affectedVersion = GitRelease.getReleaseByName((ArrayList<GitRelease>) releases, affectedVersionName);
 
 					ClassProject classProject = affectedVersion.getClassByName(className);
 					
@@ -578,7 +523,7 @@ public class GitHubAPI {
 		for(DiffEntry diffEntry:diffEntries) {
 			switch(diffEntry.getChangeType()) {
 	    	case ADD:
-				if(diffEntry.getNewPath().contains(".java")) {
+				if(diffEntry.getNewPath().contains(EXT)) {
 					ClassProject classProject = release.getClassByName(diffEntry.getNewPath());
 					if(classProject == null) {
 						classProject = new ClassProject(diffEntry.getNewPath(), release.getName(), false);
@@ -597,39 +542,33 @@ public class GitHubAPI {
 				}
 				break;
 	    	case DELETE:
-				if(diffEntry.getOldPath().contains(".java")) {
+				if(diffEntry.getOldPath().contains(EXT)) {
 					ClassProject classProject = release.getClassByName(diffEntry.getOldPath());
-					if(classProject == null) {
-			//			System.out.println("Eliminazione di una classe inesistente");
-					} else {
+					if(classProject != null) {
 						classProject.setDeleted(true);
 					}
 				}
 				break;
 	    	case RENAME:
-				if(diffEntry.getNewPath().contains(".java") && diffEntry.getOldPath().contains(".java")) {
+				if(diffEntry.getNewPath().contains(EXT) && diffEntry.getOldPath().contains(EXT)) {
 					ClassProject classProject = release.getClassByName(diffEntry.getOldPath());
-					if(classProject == null) {
-		//				System.out.println("Rinominazione di una classe inesistente");
-					} else {
+					if(classProject != null) {
 						ClassProject newClassProject = classProject.renameThisClass(diffEntry.getNewPath());
 						release.addClassToClassList(newClassProject);
 					}
 				}
 				break;
 	    	case COPY:
-	    		if(diffEntry.getNewPath().contains(".java") && diffEntry.getOldPath().contains(".java")) {
+	    		if(diffEntry.getNewPath().contains(EXT) && diffEntry.getOldPath().contains(EXT)) {
 					ClassProject classProject = release.getClassByName(diffEntry.getOldPath());
-					if(classProject == null) {
-		//				System.out.println("Copia di una classe inesistente");
-					} else {
+					if(classProject != null) {
 						ClassProject newClassProject = classProject.copyThisClass(diffEntry.getNewPath());
 						release.addClassToClassList(newClassProject);
 					}
 				}
 				break;
 	    	case MODIFY:
-	    		if( diffEntry.getOldPath().contains(".java") ) {
+	    		if( diffEntry.getOldPath().contains(EXT) ) {
 		    		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 		    		
 		    		DiffFormatter formatter = new DiffFormatter(outputStream);
@@ -641,9 +580,7 @@ public class GitHubAPI {
 			        	Diff diff = parseDiffEntry(diffEntry, diffText);
 			
 			        	ClassProject classProject = release.getClassByName(diffEntry.getNewPath());
-			        	if(classProject == null) {
-			//        		System.out.println("Modifica di una classe inesistente");
-			        	}else {
+			        	if(classProject != null) {
 				        	Measure classProjectMeasure = classProject.getMeasure();
 				        	classProjectMeasure.setMeasuresPerRelease(diff);
 						}
@@ -667,7 +604,7 @@ public class GitHubAPI {
 	private void prepareNextReleaseFiles(GitRelease release, GitRelease nextRelease) {
 		
 		for(ClassProject classProject: release.getClasses().values()) {
-			if(classProject.getDeleted() == false) {
+			if(!classProject.getDeleted()) {
 				ClassProject classProjectForNextRelease = classProject.copyThisClass(classProject.getThisName());
 				classProjectForNextRelease.resetInterReleasesMetrics();
 				nextRelease.addOrReplaceClassInClassList(classProjectForNextRelease);
@@ -676,7 +613,7 @@ public class GitHubAPI {
 	}
 	
 	
-	public void setClassPerReleaseMeasures(ArrayList<GitRelease> releases) {
+	public void setClassPerReleaseMeasures(List<GitRelease> releases) {
 		
 		
 		for(int x = 0; x < releases.size(); x++) {
@@ -685,8 +622,8 @@ public class GitHubAPI {
 			
 			//setta i valori delle misure "per versione"
 			//setta a valori provvisori le misure "storico"
-			ArrayList<GitCommit> revisions = release.getRevisions();
-			//	System.out.println(release.getDate());
+			ArrayList<GitCommit> revisions = (ArrayList<GitCommit>) release.getRevisions();
+
 			//per ogni revisione facciamo il diff con la revisione precedente
 			for (GitCommit revision: revisions) {
 				
@@ -698,11 +635,8 @@ public class GitHubAPI {
 				diffFormatter.setDiffComparator(RawTextComparator.DEFAULT);
 				diffFormatter.setDetectRenames(true);
 				
-				if(prevRevisionId == null) {
+				if(prevRevisionId == null) 
 					continue;
-				} else {
-	
-				}
 				
 				try {
 					

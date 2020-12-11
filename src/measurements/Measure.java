@@ -28,21 +28,7 @@ public class Measure {
 		avgChurn = 0;
 		setAge(0);
 	}
-	
-	public Measure(int size, int locTouched, int numberRevisions, int numberBugFixes, int locAdded,
-			int maxLocAdded, int avgLocAdded, int churn, int maxChurn, int avgChurn, double age) {
-		this.size = size;
-		this.locTouched = locTouched;
-		this.numberRevisions = numberRevisions;
-		this.numberBugFixes = numberBugFixes;
-		this.locAdded = locAdded;
-		this.maxLocAdded = maxLocAdded;
-		this.avgLocAdded = avgLocAdded;
-		this.churn = churn;
-		this.maxChurn = maxChurn;
-		this.avgChurn = avgChurn;
-		this.setAge(age);
-	}
+
 	
 	public void resetInterReleasesMetrics() {
 		locTouched = 0;
@@ -170,17 +156,18 @@ public class Measure {
 	}
 	
 	public Measure copyMeasure() {
-		return new Measure(this.size,
-		this.locTouched,
-		this.numberRevisions,
-		this.numberBugFixes,
-		this.locAdded,
-		this.maxLocAdded,
-		this.avgLocAdded,
-		this.churn,
-		this.maxChurn,
-		this.avgChurn,
-		this.getAge());
+		Measure newMeasure = new Measure();
+		newMeasure.setLocTouched(this.locTouched);
+		newMeasure.setNumberRevisions(this.numberRevisions);
+		newMeasure.setNumberBugFixes(this.numberBugFixes);
+		newMeasure.setLocAdded(this.locAdded);
+		newMeasure.setMaxLocAdded(this.maxLocAdded);
+		newMeasure.setAvgLocAdded(this.avgLocAdded);
+		newMeasure.setChurn(this.churn);
+		newMeasure.setMaxChurn(this.maxChurn);
+		newMeasure.setAvgChurn(this.avgChurn);
+		newMeasure.setAge(this.getAge());
+		return newMeasure;
 	}
 	
 

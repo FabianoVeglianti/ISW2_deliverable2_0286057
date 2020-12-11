@@ -20,6 +20,7 @@ import weka.filters.supervised.instance.SpreadSubsample;
 import weka.filters.supervised.instance.SMOTE;
 
 public class Analizer {
+	private static final String VERSIONID = "versionID";
 	
 	private String projName; 
 	
@@ -33,9 +34,8 @@ public class Analizer {
 	public Instances loadFile() throws IOException {
 		CSVLoader loader = new CSVLoader();
     	loader.setSource(new File(projName+".csv"));
-    	Instances data = loader.getDataSet();//get instances object
-	
-    	return data;
+    
+    	return loader.getDataSet();//get instances object
 	}
 	
 	/**
@@ -48,7 +48,7 @@ public class Analizer {
 	/**
 	 * Effettua lo split del dataset in training e test set in funzione dell'indice della release da usare come test set.
 	 * */
-	private Instances[] getTrainingTestSet(Instances data, int testReleaseIndex) {
+	public Instances[] getTrainingTestSet(Instances data, int testReleaseIndex) {
 		Instances[] trainTest = new Instances[2];
 		//mi preparo dei dataset vuoti con la stessa intestazione del dataset di partenza
 		Instances trainingSet = new Instances(data,0);
@@ -56,7 +56,7 @@ public class Analizer {
 		
 		//per ogni istanza se l'id della release è precedente all'id della release da usare come test set allora
 		//aggiungo quell'istanza al training set, altrimenti, se è uguale, l'aggiungo al test set
-		int index = data.attribute("versionID").index();
+		int index = data.attribute(VERSIONID).index();
 		for(Instance instance:data) {
 			if((int)instance.value(index)<testReleaseIndex) {
 				trainingSet.add(instance);
@@ -75,22 +75,21 @@ public class Analizer {
 	 * */
 	public int getReleasesNumber(Instances data) {
 		Instance instance = data.lastInstance();
-		int index = data.attribute("versionID").index();
+		int index = data.attribute(VERSIONID).index();
 		return (int)instance.value(index);
 	}
 	
 	/**
 	 * Esegue un'iterazione di Walk Forward
 	 * */
-	public void runWalkForwardIteration(Instances data, Result result, int positiveResultIndex, int iterationIndex) throws Exception {
+	public void runWalkForwardIteration(Instances[] trainTest, Result result, int positiveResultIndex, int iterationIndex) throws Exception {
 		
 		//ottiene lo split training test
-		Instances[] trainTest = getTrainingTestSet(data,iterationIndex);
 		Instances trainingSet = trainTest[0];
 		Instances testSet = trainTest[1];
 		
 		//rimuove dal dataset la feature relativa all'id della release
-		int index = trainingSet.attribute("versionID").index();
+		int index = trainingSet.attribute(VERSIONID).index();
 		trainingSet.deleteAttributeAt(index);
 		testSet.deleteAttributeAt(index);
 		
@@ -107,15 +106,12 @@ public class Analizer {
 		//otteniamo il classificatore
 		switch(result.getClassifierName()) {
 		case "Random Forest":
-			System.out.println("Random Forest");
 			classifier = new RandomForest();
 			break;
 		case "Naive Bayes":
-			System.out.println("Naive Bayes");
 			classifier = new NaiveBayes();
 			break;
 		case "IBk":
-			System.out.println("IBk");
 			classifier = new IBk();
 			break;
 		default:
@@ -177,9 +173,9 @@ public class Analizer {
 				}
 			}
 			if(numInstancesTrue < numInstancesFalse) {
-				parameter = (double)((double)numInstancesFalse-(double)numInstancesTrue)/(double)numInstancesTrue*100.0;
+				parameter = (double)numInstancesFalse-(double)numInstancesTrue/(double)numInstancesTrue*100.0;
 			} else {
-				parameter = (double)((double)numInstancesTrue-(double)numInstancesFalse)/(double)numInstancesFalse*100.0;
+				parameter = (double)numInstancesTrue-(double)numInstancesFalse/(double)numInstancesFalse*100.0;
 			}
 
 			opts = new String[] {"-P", String.valueOf(parameter)};
@@ -194,10 +190,7 @@ public class Analizer {
 		}
 		
 		//otteniamo il metodo di feature selection
-		switch(result.getFeatureSelectionName()) {
-		case "No feature selection":
-			break;
-		case "Best First":
+		if(result.getFeatureSelectionName().equalsIgnoreCase("Best First")) {
 			//create AttributeSelection object
 			featureSelection = new AttributeSelection();
 			//create evaluator and search algorithm objects
@@ -226,116 +219,11 @@ public class Analizer {
 		Evaluation eval = new Evaluation(testSet);
 		eval.evaluateModel(classifier, testSet);
 		
-		//raccolgo i risultati
-		double TP = eval.numTruePositives(positiveResultIndex);
-		double FP = eval.numFalsePositives(positiveResultIndex);
-		double TN = eval.numTrueNegatives(positiveResultIndex);
-		double FN = eval.numFalseNegatives(positiveResultIndex);
-		double precision = eval.precision(positiveResultIndex);
-		double recall = eval.recall(positiveResultIndex);
-		double auc = eval.areaUnderROC(positiveResultIndex);
-		double kappa = eval.kappa();
-
+		
 		//salvo i risultati nell'oggetto result
-		result.setValues(TP, FP, TN, FN, precision, recall, auc, kappa);
-		System.out.println("Iterazione " + iterationIndex + "\nClassificatore "+ result.getClassifierName()+ "\n"
-				+ "Resampling " + result.getResamplingMethodName()+ "\nFeature selection " + result.getFeatureSelectionName());
-		System.out.println(result.toString()+"\n\n");
+		result.setValues(eval, positiveResultIndex);
 
 	}
-	
-/*
-	private void temp() {
-		
-		Instances data;
-		try {
-			data = this.loadFile();
-			int index = data.attribute("versionName").index();
-			data.deleteAttributeAt(index);
-			index = data.attribute("filename").index();
-			data.deleteAttributeAt(index);
-			
-			Enumeration<Object> values = data.attribute(data.numAttributes()-1).enumerateValues();
-			int positiveResultIndex = 0;
-			index = 0;
-			while(values.hasMoreElements()) {
-				Object v = values.nextElement();
-				System.out.println(v);
-				
-				if (((String)v).equalsIgnoreCase("true")) {
-					positiveResultIndex = index;
-				} else if (((String)v).equalsIgnoreCase("false")) {
-					positiveResultIndex = index;
-				}
-				index = index + 1;
-			}
-			int releasesNumber = this.getReleasesNumber(data);
-			ArrayList<Result> resultList = new ArrayList<Result>();
-			for(int i = 2; i< releasesNumber+1; i++) {
-				Instances newData = this.copyDataset(data);
-				Result result = new Result("Random Forest", "no feature selection", "no resampling");
-				Instances[] trainTest = getTrainingTestSet(newData,i);
-				
-				result.setDatasetValues(trainTest, i);
-				
-				Instances trainingSet = trainTest[0];
-				Instances testSet = trainTest[1];
-				System.out.println("train number" + trainingSet.numInstances() + " test number" + testSet.numInstances());
-				
-				index = trainingSet.attribute("versionID").index();
-				trainingSet.deleteAttributeAt(index);
-				testSet.deleteAttributeAt(index);
-				
-				int numAttr = trainingSet.numAttributes();
-				trainingSet.setClassIndex(numAttr - 1);
-				testSet.setClassIndex(numAttr - 1);
-				
-				//otteniamo gli oggetti da utilizzare in questa iterazione
-				IBk classifier = new IBk();
-
-			
-
-				classifier.buildClassifier(trainingSet);
-				Evaluation eval = new Evaluation(testSet);
-				eval.evaluateModel(classifier, testSet);
-				
-				double TP = eval.numTruePositives(positiveResultIndex);
-				double FP = eval.numFalsePositives(positiveResultIndex);
-				double TN = eval.numTrueNegatives(positiveResultIndex);
-				double FN = eval.numFalseNegatives(positiveResultIndex);
-				double precision = eval.precision(positiveResultIndex);
-				double recall = eval.recall(positiveResultIndex);
-				double auc = eval.areaUnderROC(positiveResultIndex);
-				double kappa = eval.kappa();
-
-				
-				result.setValues(TP, FP, TN, FN, precision, recall, auc, kappa);
-				System.out.println("Iterazione " + i + "\nClassificatore "+ result.getClassifierName()+ "\n"
-						+ "Resampling " + result.getResamplingMethodName()+ "\nFeature selection " + result.getFeatureSelectionName());
-				System.out.println(result.toString()+"\n\n");
-				resultList.add(result);
-			}
-			CsvWriter writer = new CsvWriter("BOOKKEEPER");
-			writer.writeResultCSV(resultList);
-			
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
-		
-	}
-	
-	
-	public static void main(String[] args) {
-		Analizer analizer = new Analizer("BOOKKEEPER");
-		analizer.temp();
-	}
-	*/
-	
 	
 	
 }

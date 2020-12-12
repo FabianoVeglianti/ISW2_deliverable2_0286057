@@ -244,17 +244,14 @@ public class JiraAPI {
 			
 					
 					//Jira ha dati sulle AV, ma devo vedere se l'IV è precedente alla OV
-					String IV = ticket.getInjectedVersion((ArrayList<ReleaseJira>) releases);
+					String iv = ticket.getInjectedVersion((ArrayList<ReleaseJira>) releases);
 					
-					ReleaseJira IVrelease = ReleaseJira.getReleaseByName((ArrayList<ReleaseJira>) releases, IV);
-					ReleaseJira OVrelease = ReleaseJira.getReleaseByName((ArrayList<ReleaseJira>) releases, bug.getOV());
+					ReleaseJira ivRelease = ReleaseJira.getReleaseByName((ArrayList<ReleaseJira>) releases, iv);
+					ReleaseJira ovRelease = ReleaseJira.getReleaseByName((ArrayList<ReleaseJira>) releases, bug.getOV());
 					
-					if(IVrelease.getReleaseDate().before(OVrelease.getReleaseDate())){
-						//se IV < OV=FV allora mantengo il bug
-						
-						continue;
 					
-					} else {
+						//se IV < OV=FV allora mantengo il bug e non faccio niente, altrimenti entro nell'if che segue
+					if(!ivRelease.getReleaseDate().before(ovRelease.getReleaseDate())){
 						//se IV >= OV=FV allora elimino il bug perché è come se fossi nel caso
 						//OV = FV e lista delle AV in jira non presente
 						tickets.remove(ticket);

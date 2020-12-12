@@ -21,8 +21,6 @@ import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.ListBranchCommand.ListMode;
 import org.eclipse.jgit.api.LogCommand;
 import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.api.errors.InvalidRemoteException;
-import org.eclipse.jgit.api.errors.TransportException;
 import org.eclipse.jgit.diff.DiffEntry;
 import org.eclipse.jgit.diff.DiffFormatter;
 import org.eclipse.jgit.diff.RawTextComparator;
@@ -39,6 +37,7 @@ import org.eclipse.jgit.util.io.DisabledOutputStream;
 import bug_tools.Bug;
 import bug_tools.Diff;
 import datapkg.ClassProject;
+import date_tools.DateCreator;
 import jirapkg.ReleaseJira;
 import measurements.Measure;
 
@@ -81,19 +80,10 @@ public class GitHubAPI {
 				git.pull().call();
 			}
 		
-		} catch (InvalidRemoteException e) {
+		} catch (GitAPIException | IOException e) {
 			e.printStackTrace();
 			mylogger.log(Level.WARNING, WARNINGMESSAGE);
-		} catch (TransportException e) {
-			e.printStackTrace();
-			mylogger.log(Level.WARNING, WARNINGMESSAGE);
-		} catch (GitAPIException e) {
-			e.printStackTrace();
-			mylogger.log(Level.WARNING, WARNINGMESSAGE);
-		} catch (IOException e) {
-			e.printStackTrace();
-			mylogger.log(Level.WARNING, WARNINGMESSAGE);
-		}
+		} 
 	}
 	
 	private String getDefaultBranchName() {
@@ -135,7 +125,7 @@ public class GitHubAPI {
 	    		parentID = commit.getParent(0).getId();
 	    	}
 	    	ObjectId commitID = commit.getId();
-	    	Date date = new Date(commit.getCommitTime() *1000L);
+	    	Date date =  DateCreator.getDateFromEpoch(commit.getCommitTime() *1000L);
 	    	String message = commit.getFullMessage();
 	    	
 	    	GitCommit gitCommit = new  GitCommit(commitID, date, parentID, message);
@@ -162,7 +152,7 @@ public class GitHubAPI {
 	
 	public List<GitRelease> getReleases() {
 		
-		ArrayList<GitRelease> releases = new ArrayList<GitRelease>();
+		ArrayList<GitRelease> releases = new ArrayList<>();
 		List<Ref> tagList = null;
 		try {
 			//ottiene la lista dei tag
@@ -184,15 +174,11 @@ public class GitHubAPI {
 			
 			try {
 				commit = walk.parseCommit(tag.getObjectId());
-			} catch (MissingObjectException e) {
-				e.printStackTrace();
-			} catch (IncorrectObjectTypeException e) {
-				e.printStackTrace();
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
 			//da cancellare inizio
-			Date date = new Date(commit.getCommitTime() *1000L);
+			Date date = DateCreator.getDateFromEpoch(commit.getCommitTime() *1000L);
 			//da cancellare fine
 			
 			GitRelease release = new GitRelease();
@@ -275,8 +261,7 @@ public class GitHubAPI {
 			    
 			}
 			
-			System.out.println("Per la release " + release.getName() + " si hanno "+ release.getClasses().size() + " classi."); //salvare il risultato e poi cancellarla
-			
+						
 			revWalk.dispose();
 		} catch (IOException e ) {
 			e.printStackTrace();
@@ -427,7 +412,7 @@ public class GitHubAPI {
 		for (RevCommit commit : commits) {
 			
 			ObjectId commitID = commit.getId();
-	    	Date date = new Date(commit.getCommitTime() *1000L);
+	    	Date date = DateCreator.getDateFromEpoch(commit.getCommitTime() *1000L);
 	    	String message = commit.getFullMessage();
 	    	ObjectId parentID;
 	    	
@@ -456,57 +441,63 @@ public class GitHubAPI {
 		}
 		
 	}
+	
+	private void analizeDiffForBugginess(Diff diff, List<GitRelease> releases, List<String> av) {
+		/*
+		 * Per ogni diff inizio cercando il nome del file modificato nel diff nell'ultima AV
+		 * Se lo trovo mi salvo tutti i nomi assunti dallo stesso file durante la storia del progetto
+		 * il motivo è che nelle AVs precedenti all'ultima AV considerata il file potrebbe avere un
+		 * nome diverso da quello contenuto nel diff.
+		 * Dunque quando vado indietro con le AVs se non trovo la classe cerco i vecchi nomi della
+		 * stessa.
+		 * */
+		String className = diff.getOldPath();
+		TreeSet<String> classNameHistory = new TreeSet<>();
+		for(int i = av.size()-1; i>=0; i--) {
+			
+			String affectedVersionName = av.get(i);
+			GitRelease affectedVersion = GitRelease.getReleaseByName((ArrayList<GitRelease>) releases, affectedVersionName);
+
+			ClassProject classProject = affectedVersion.getClassByName(className);
+			
+			if (classProject != null) {		
+
+				classProject.setBugginess(true);
+				classProject.getMeasure().increaseBugFixes();
+				ClassProject oldClassProject = classProject.getOldClassProject();
+				
+				while(oldClassProject != null) {
+					if(classNameHistory.contains(oldClassProject.getThisName()) || oldClassProject.getThisName().equalsIgnoreCase(className)){
+						break;
+					}
+					classNameHistory.add(oldClassProject.getThisName());
+					oldClassProject = oldClassProject.getOldClassProject();
+				}
+				
+			} 
+			for(String name: classNameHistory) {
+				ClassProject oldClassProject = affectedVersion.getClassByName(name);
+				if (oldClassProject != null) {			
+					oldClassProject.setBugginess(true);
+					oldClassProject.getMeasure().increaseBugFixes();
+				}
+			}
+		}
+	}
 		
 	public void setBugginess(List<Bug> bugs, List<GitRelease> releases) {
 		
 		for (Bug bug: bugs) {	
 			
+			
+			
 			ArrayList<Diff> diffList = getClassChanges(bug);
 			ArrayList<String> av = (ArrayList<String>) bug.getAV();
 			
-			/*
-			 * Per ogni diff inizio cercando il nome del file modificato nel diff nell'ultima AV
-			 * Se lo trovo mi salvo tutti i nomi assunti dallo stesso file durante la storia del progetto
-			 * il motivo è che nelle AVs precedenti all'ultima AV considerata il file potrebbe avere un
-			 * nome diverso da quello contenuto nel diff.
-			 * Dunque quando vado indietro con le AVs se non trovo la classe cerco i vecchi nomi della
-			 * stessa.
-			 * */
+			
 			for(Diff diff: diffList) {
-				String className = diff.getOldPath();
-				TreeSet<String> classNameHistory = new TreeSet<>();
-				for(int i = av.size()-1; i>=0; i--) {
-					
-					String affectedVersionName = av.get(i);
-					GitRelease affectedVersion = GitRelease.getReleaseByName((ArrayList<GitRelease>) releases, affectedVersionName);
-
-					ClassProject classProject = affectedVersion.getClassByName(className);
-					
-					if (classProject != null) {		
-	
-						classProject.setBugginess(true);
-						classProject.getMeasure().increaseBugFixes();
-						ClassProject oldClassProject = classProject.getOldClassProject();
-						
-						while(oldClassProject != null) {
-							if(classNameHistory.contains(oldClassProject.getThisName()) || oldClassProject.getThisName().equalsIgnoreCase(className)){
-								break;
-							}
-							classNameHistory.add(oldClassProject.getThisName());
-							oldClassProject = oldClassProject.getOldClassProject();
-						}
-						
-					} 
-
-					
-					for(String name: classNameHistory) {
-						ClassProject oldClassProject = affectedVersion.getClassByName(name);
-						if (oldClassProject != null) {			
-							oldClassProject.setBugginess(true);
-							oldClassProject.getMeasure().increaseBugFixes();
-						}
-					}
-				}
+				analizeDiffForBugginess(diff, releases, av);
+				
 				
 				
 				

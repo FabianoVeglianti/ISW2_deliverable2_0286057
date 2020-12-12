@@ -79,10 +79,21 @@ public class Analizer {
 		return (int)instance.value(index);
 	}
 	
+	private int getNumInstancesTrue(Instances dataset) {
+		int numInstancesTrue = 0;
+		int buggyIndex = dataset.classIndex();
+		for(Instance instance:dataset) {
+			if(instance.stringValue(buggyIndex).equalsIgnoreCase("true")) {
+				numInstancesTrue = numInstancesTrue + 1;
+			}
+		}
+		return numInstancesTrue;
+	}
+	
 	/**
 	 * Esegue un'iterazione di Walk Forward
 	 * */
-	public void runWalkForwardIteration(Instances[] trainTest, Result result, int positiveResultIndex, int iterationIndex) throws Exception {
+	public void runWalkForwardIteration(Instances[] trainTest, Result result, int positiveResultIndex, int iterationIndex) {
 		
 		//ottiene lo split training test
 		Instances trainingSet = trainTest[0];
@@ -120,109 +131,109 @@ public class Analizer {
 		//applichiamo il metodo di balancing
 		switch(result.getResamplingMethodName()) {
 		case "Undersampling":
-			resamplingMethod = new SpreadSubsample();
-			
-			resamplingMethod.setInputFormat(trainingSet);
-			
-			String[] opts = new String[]{ "-M", "1.0"};
-			resamplingMethod.setOptions(opts);
-			
-			trainingSet = Filter.useFilter(trainingSet, resamplingMethod);
-	
+			try {
+				resamplingMethod = new SpreadSubsample();
+				
+				resamplingMethod.setInputFormat(trainingSet);
+				
+				String[] opts = new String[]{ "-M", "1.0"};
+				resamplingMethod.setOptions(opts);
+				
+				trainingSet = Filter.useFilter(trainingSet, resamplingMethod);
+			} catch(Exception e) {
+				e.printStackTrace();
+				
+			}
 			break;
 		case "Oversampling":
-			resamplingMethod = new Resample();
-
-			resamplingMethod.setInputFormat(trainingSet);
-			
-			//mi calcolo la percentuale della classe maggioritaria
-			int trainingSetSize = trainingSet.size();
-			int numInstancesTrue = 0;
-			int buggyIndex = trainingSet.classIndex();
-			for(Instance instance:trainingSet) {
-				if(instance.stringValue(buggyIndex).equalsIgnoreCase("true")) {
-					numInstancesTrue = numInstancesTrue + 1;
+			try {
+				resamplingMethod = new Resample();
+	
+				resamplingMethod.setInputFormat(trainingSet);
+				
+				//mi calcolo la percentuale della classe maggioritaria
+				int trainingSetSize = trainingSet.size();
+				int numInstancesTrue = getNumInstancesTrue(trainingSet);
+				double percentageTrue = (double)(numInstancesTrue)/(double)(trainingSetSize)*100.0;
+				double percentageMajorityClass = 0;
+				if(percentageTrue > 50) {
+					percentageMajorityClass = percentageTrue;
+				} else {
+					percentageMajorityClass = 100 - percentageTrue;
 				}
+				String doublePercentageMajorityClassString = String.valueOf(percentageMajorityClass*2);
+				
+				String[] opts = new String[]{ "-B", "1.0", "-Z", doublePercentageMajorityClassString};
+				resamplingMethod.setOptions(opts);
+				
+				trainingSet = Filter.useFilter(trainingSet, resamplingMethod);
+			} catch (Exception e){
+				e.printStackTrace();
 			}
-			double percentageTrue = (double)(numInstancesTrue)/(double)(trainingSetSize)*100.0;
-			double percentageMajorityClass = 0;
-			if(percentageTrue > 50) {
-				percentageMajorityClass = percentageTrue;
-			} else {
-				percentageMajorityClass = 100 - percentageTrue;
-			}
-			String doublePercentageMajorityClassString = String.valueOf(percentageMajorityClass*2);
-			
-			opts = new String[]{ "-B", "1.0", "-Z", doublePercentageMajorityClassString};
-			resamplingMethod.setOptions(opts);
-			
-			trainingSet = Filter.useFilter(trainingSet, resamplingMethod);
-
 			break;
 		case "Smote":
+			try {
 			resamplingMethod = new SMOTE();
 			
 			double parameter = 0;
-			numInstancesTrue = 0;
-			int numInstancesFalse = 0;
-			for (Instance instance: trainingSet) {
-				if(instance.stringValue(trainingSet.classIndex()).equalsIgnoreCase("true")) {
-					numInstancesTrue = numInstancesTrue +1;
-				} else if (instance.stringValue(trainingSet.classIndex()).equalsIgnoreCase("false")) {
-					numInstancesFalse = numInstancesFalse +1;
-				}
-			}
+			int numInstancesTrue = getNumInstancesTrue(trainingSet);
+			int numInstancesFalse = trainingSet.numInstances()-numInstancesTrue;
 			if(numInstancesTrue < numInstancesFalse) {
 				parameter = (double)numInstancesFalse-(double)numInstancesTrue/(double)numInstancesTrue*100.0;
 			} else {
 				parameter = (double)numInstancesTrue-(double)numInstancesFalse/(double)numInstancesFalse*100.0;
 			}
 
-			opts = new String[] {"-P", String.valueOf(parameter)};
+			String[] opts = new String[] {"-P", String.valueOf(parameter)};
 			resamplingMethod.setOptions(opts);
 			resamplingMethod.setInputFormat(trainingSet);
 			trainingSet = Filter.useFilter(trainingSet, resamplingMethod);
+			} catch(Exception e) {
+				e.printStackTrace();
+			}
 			break;
 		case "No resampling":
 			break;
 		default:
 			break;
 		}
-		
+		try {
 		//otteniamo il metodo di feature selection
-		if(result.getFeatureSelectionName().equalsIgnoreCase("Best First")) {
-			//create AttributeSelection object
-			featureSelection = new AttributeSelection();
-			//create evaluator and search algorithm objects
-			CfsSubsetEval eval = new CfsSubsetEval();
-			GreedyStepwise search = new GreedyStepwise();
-			//set the algorithm to search backward
-			search.setSearchBackwards(true);
-			//set the filter to use the evaluator and search algorithm
-			featureSelection.setEvaluator(eval);
-			featureSelection.setSearch(search);
-			//specify the dataset
-			featureSelection.setInputFormat(trainingSet);
-			//apply
-			trainingSet = Filter.useFilter(trainingSet, featureSelection);
-			testSet = Filter.useFilter(testSet, featureSelection);
-			int numAttrFiltered = trainingSet.numAttributes();
-			trainingSet.setClassIndex(numAttrFiltered - 1);
-			testSet.setClassIndex(numAttrFiltered - 1);
+			if(result.getFeatureSelectionName().equalsIgnoreCase("Best First")) {
+				//create AttributeSelection object
+				featureSelection = new AttributeSelection();
+				//create evaluator and search algorithm objects
+				CfsSubsetEval eval = new CfsSubsetEval();
+				GreedyStepwise search = new GreedyStepwise();
+				//set the algorithm to search backward
+				search.setSearchBackwards(true);
+				//set the filter to use the evaluator and search algorithm
+				featureSelection.setEvaluator(eval);
+				featureSelection.setSearch(search);
+				//specify the dataset
+				featureSelection.setInputFormat(trainingSet);
+				//apply
+				trainingSet = Filter.useFilter(trainingSet, featureSelection);
+				testSet = Filter.useFilter(testSet, featureSelection);
+				int numAttrFiltered = trainingSet.numAttributes();
+				trainingSet.setClassIndex(numAttrFiltered - 1);
+				testSet.setClassIndex(numAttrFiltered - 1);
+			}
+		 
+			//salva le informazioni relative al numero di release in training e alla percentuale di bugginess nel training e nel test set
+			result.setDatasetValues(trainingSet, testSet, iterationIndex);
+		
+			//addestro il classificatore ed effettuo la predizione
+			classifier.buildClassifier(trainingSet);
+			Evaluation eval = new Evaluation(testSet);
+			eval.evaluateModel(classifier, testSet);
+			
+			
+			//salvo i risultati nell'oggetto result
+			result.setValues(eval, positiveResultIndex);
+		} catch(Exception e) {
+			e.printStackTrace();
 		}
-		
-		//salva le informazioni relative al numero di release in training e alla percentuale di bugginess nel training e nel test set
-		result.setDatasetValues(trainingSet, testSet, iterationIndex);
-	
-		//addestro il classificatore ed effettuo la predizione
-		classifier.buildClassifier(trainingSet);
-		Evaluation eval = new Evaluation(testSet);
-		eval.evaluateModel(classifier, testSet);
-		
-		
-		//salvo i risultati nell'oggetto result
-		result.setValues(eval, positiveResultIndex);
-
 	}
 	
 	

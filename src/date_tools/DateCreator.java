@@ -9,6 +9,15 @@ public class DateCreator {
 		//private constructor
 	}
 	
+	public static Date getDateFromEpoch(long millisecondsFromEpoch) {
+		Calendar calendar = Calendar.getInstance();
+		
+		calendar.setTimeInMillis(millisecondsFromEpoch);
+		
+		return calendar.getTime();
+	}
+	
+	
 	public static Date getTomorrow() {
 		// get a calendar instance, which defaults to "now"
 	    Calendar calendar = Calendar.getInstance();

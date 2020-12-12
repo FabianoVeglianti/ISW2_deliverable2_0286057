@@ -74,8 +74,6 @@ public class MainAnalizeDataset {
 			writer.writeResultCSV(resultList);
 			
 			
-		} catch (IOException e) {
-			e.printStackTrace();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

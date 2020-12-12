@@ -129,9 +129,10 @@ public class Analizer {
 		}
 		
 		//applichiamo il metodo di balancing
-		switch(result.getResamplingMethodName()) {
-		case "Undersampling":
-			try {
+		try {
+			switch(result.getResamplingMethodName()) {
+			case "Undersampling":
+	
 				resamplingMethod = new SpreadSubsample();
 				
 				resamplingMethod.setInputFormat(trainingSet);
@@ -140,13 +141,9 @@ public class Analizer {
 				resamplingMethod.setOptions(opts);
 				
 				trainingSet = Filter.useFilter(trainingSet, resamplingMethod);
-			} catch(Exception e) {
-				e.printStackTrace();
-				
-			}
-			break;
-		case "Oversampling":
-			try {
+				break;
+			case "Oversampling":
+	
 				resamplingMethod = new Resample();
 	
 				resamplingMethod.setInputFormat(trainingSet);
@@ -163,39 +160,38 @@ public class Analizer {
 				}
 				String doublePercentageMajorityClassString = String.valueOf(percentageMajorityClass*2);
 				
-				String[] opts = new String[]{ "-B", "1.0", "-Z", doublePercentageMajorityClassString};
+				opts = new String[]{ "-B", "1.0", "-Z", doublePercentageMajorityClassString};
 				resamplingMethod.setOptions(opts);
 				
 				trainingSet = Filter.useFilter(trainingSet, resamplingMethod);
-			} catch (Exception e){
-				e.printStackTrace();
-			}
-			break;
-		case "Smote":
-			try {
-			resamplingMethod = new SMOTE();
 			
-			double parameter = 0;
-			int numInstancesTrue = getNumInstancesTrue(trainingSet);
-			int numInstancesFalse = trainingSet.numInstances()-numInstancesTrue;
-			if(numInstancesTrue < numInstancesFalse) {
-				parameter = (double)numInstancesFalse-(double)numInstancesTrue/(double)numInstancesTrue*100.0;
-			} else {
-				parameter = (double)numInstancesTrue-(double)numInstancesFalse/(double)numInstancesFalse*100.0;
+				break;
+			case "Smote":
+				
+				resamplingMethod = new SMOTE();
+				
+				double parameter = 0;
+				numInstancesTrue = getNumInstancesTrue(trainingSet);
+				int numInstancesFalse = trainingSet.numInstances()-numInstancesTrue;
+				if(numInstancesTrue < numInstancesFalse) {
+					parameter = (double)numInstancesFalse-(double)numInstancesTrue/(double)numInstancesTrue*100.0;
+				} else {
+					parameter = (double)numInstancesTrue-(double)numInstancesFalse/(double)numInstancesFalse*100.0;
+				}
+	
+				opts = new String[] {"-P", String.valueOf(parameter)};
+				resamplingMethod.setOptions(opts);
+				resamplingMethod.setInputFormat(trainingSet);
+				trainingSet = Filter.useFilter(trainingSet, resamplingMethod);
+				
+				break;
+			case "No resampling":
+				break;
+			default:
+				break;
 			}
-
-			String[] opts = new String[] {"-P", String.valueOf(parameter)};
-			resamplingMethod.setOptions(opts);
-			resamplingMethod.setInputFormat(trainingSet);
-			trainingSet = Filter.useFilter(trainingSet, resamplingMethod);
-			} catch(Exception e) {
-				e.printStackTrace();
-			}
-			break;
-		case "No resampling":
-			break;
-		default:
-			break;
+		} catch(Exception e) {
+			e.printStackTrace();
 		}
 		try {
 		//otteniamo il metodo di feature selection

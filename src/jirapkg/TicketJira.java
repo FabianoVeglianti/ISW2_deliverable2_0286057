@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -143,7 +144,7 @@ public class TicketJira {
 		//prendo la versione più vecchia contenuta in mapVersionameDate
 		String injectedVersion = "";
 		Date oldDate = DateCreator.getOldDate();
-		for(HashMap.Entry<String,Date> mapVersionameDateEntry: mapVersionameDate.entrySet()) {
+		for(Entry<String,Date> mapVersionameDateEntry: mapVersionameDate.entrySet()) {
 			String key = mapVersionameDateEntry.getKey();
 			Date versionDate = mapVersionameDateEntry.getValue();
 			if(versionDate.after(oldDate)) {
@@ -245,7 +246,7 @@ public class TicketJira {
 			//prendo la versione più vecchia contenuta in mapVersionameDate
 			String fixedVersion = "";
 			Date oldDate = DateCreator.getOldDate();
-			for(HashMap.Entry<String,Date> mapVersionameDateEntry: mapVersionameDate.entrySet()) {
+			for(Entry<String,Date> mapVersionameDateEntry: mapVersionameDate.entrySet()) {
 				String key = mapVersionameDateEntry.getKey();
 				Date versionDate = mapVersionameDate.get(key);
 				if(versionDate.after(oldDate)) {

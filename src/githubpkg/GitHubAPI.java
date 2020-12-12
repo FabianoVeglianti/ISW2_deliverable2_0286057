@@ -443,7 +443,7 @@ public class GitHubAPI {
 		
 	}
 	
-	private void analizeDiffForOneAV(String affectedVersionName,Diff diff, List<GitRelease> releases, String className, Set<String> classNameHistory) {
+	private void analizeDiffForOneAV(String affectedVersionName, List<GitRelease> releases, String className, Set<String> classNameHistory) {
 		GitRelease affectedVersion = GitRelease.getReleaseByName((ArrayList<GitRelease>) releases, affectedVersionName);
 
 		ClassProject classProject = affectedVersion.getClassByName(className);
@@ -486,7 +486,7 @@ public class GitHubAPI {
 		for(int i = av.size()-1; i>=0; i--) {
 			
 			String affectedVersionName = av.get(i);
-			analizeDiffForOneAV(affectedVersionName, diff, releases, className, classNameHistory);
+			analizeDiffForOneAV(affectedVersionName, releases, className, classNameHistory);
 			
 		}
 	}
@@ -533,7 +533,7 @@ public class GitHubAPI {
 		}
 	}
 	
-	private void deleteHandling(GitCommit revision, DiffEntry diffEntry, GitRelease release) {
+	private void deleteHandling(DiffEntry diffEntry, GitRelease release) {
 		if(diffEntry.getOldPath().contains(EXT)) {
 			ClassProject classProject = release.getClassByName(diffEntry.getOldPath());
 			if(classProject != null) {
@@ -542,7 +542,7 @@ public class GitHubAPI {
 		}
 	}
 	
-	private void renameHandling(GitCommit revision, DiffEntry diffEntry, GitRelease release) {
+	private void renameHandling(DiffEntry diffEntry, GitRelease release) {
 		if(diffEntry.getNewPath().contains(EXT) && diffEntry.getOldPath().contains(EXT)) {
 			ClassProject classProject = release.getClassByName(diffEntry.getOldPath());
 			if(classProject != null) {
@@ -552,7 +552,7 @@ public class GitHubAPI {
 		}
 	}
 	
-	private void copyHandling(GitCommit revision, DiffEntry diffEntry, GitRelease release) {
+	private void copyHandling(DiffEntry diffEntry, GitRelease release) {
 		if(diffEntry.getNewPath().contains(EXT) && diffEntry.getOldPath().contains(EXT)) {
 			ClassProject classProject = release.getClassByName(diffEntry.getOldPath());
 			if(classProject != null) {
@@ -562,7 +562,7 @@ public class GitHubAPI {
 		}
 	}
 	
-	private void modifyHandling(GitCommit revision, DiffEntry diffEntry, GitRelease release) {
+	private void modifyHandling(DiffEntry diffEntry, GitRelease release) {
 		if( diffEntry.getOldPath().contains(EXT) ) {
     		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
     		
@@ -596,16 +596,16 @@ public class GitHubAPI {
 	    		addHandling(revision, diffEntry, release);
 				break;
 	    	case DELETE:
-	    		deleteHandling(revision,diffEntry,release);
+	    		deleteHandling(diffEntry,release);
 				break;
 	    	case RENAME:
-	    		renameHandling(revision,diffEntry, release);
+	    		renameHandling(diffEntry, release);
 				break;
 	    	case COPY:
-	    		copyHandling(revision,diffEntry,release);
+	    		copyHandling(diffEntry,release);
 				break;
 	    	case MODIFY:
-	    		modifyHandling(revision,diffEntry,release);
+	    		modifyHandling(diffEntry,release);
 		        break;
 			default:
 				

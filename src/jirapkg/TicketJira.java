@@ -5,6 +5,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -156,6 +157,62 @@ public class TicketJira {
 		
 	}
 	
+	private void fixDataFixVersionEmpty(List<ReleaseJira> releases) {
+		if(resolutionDate.compareTo(releases.get(0).getReleaseDate()) <=0) {
+			fixedVersions.add(releases.get(0).getName());
+		} else {
+		 
+			for (int i = 0; i<releases.size()-1; i++) {
+				ReleaseJira prevRelease = releases.get(i);
+				ReleaseJira nextRelease = releases.get(i+1);
+				
+				if (resolutionDate.after(prevRelease.getReleaseDate()) && (resolutionDate.compareTo(nextRelease.getReleaseDate()) <=0) ) {
+					fixedVersions.add(nextRelease.getName());
+				}
+			}
+		}
+	}
+	
+	
+	private void createMapFixedVersionNameDate(List<ReleaseJira> releases, Map<String,Date> mapVersionameDate, String fixedVersionName) {
+		try {
+			
+			//vediamo se la fixed version considerata è presente nella lista delle release
+
+			ReleaseJira releaseJira = ReleaseJira.getReleaseByName(releases, fixedVersionName);
+					
+			if(releaseJira == null) {
+				//se non è presente significa che non conosco quella release
+				throw new UnknownReleaseException("Release " + fixedVersionName + " non trovata!");
+			} else {
+				//se è presente mi salvo la sua data di rilascio nella mappa
+				mapVersionameDate.put(fixedVersionName, releaseJira.getReleaseDate());
+			}
+			
+		} catch (UnknownReleaseException e) {
+			
+			/*
+			 * Se la release è sconosciuta allora uso resolutionDate per determinare la FV
+			 * Quindi svuoto l'arraylist fixedVersions e cerco la prima release successiva a 
+			 * resolutionDate
+			 * In fase di ottenimento dei dati si sono già scartati i bug per cui resolutionDate
+			 * è successiva all'ultima release
+			 * */
+			for (int i = 0; i < fixedVersions.size(); i++) {
+				fixedVersions.remove(0);
+			}
+			
+			for (int i = 0; i<releases.size()-1; i++) {
+				ReleaseJira prevRelease = releases.get(i);
+				ReleaseJira nextRelease = releases.get(i+1);
+				
+				if (resolutionDate.after(prevRelease.getReleaseDate()) && (resolutionDate.compareTo(nextRelease.getReleaseDate()) <=0) ) {
+					fixedVersions.add(nextRelease.getName());
+					return;
+				}
+			}
+		}
+	}
 	
 	/**
 	 * Alcuni dati sono incompleti o incoerenti: ad esempio potrebbero esserci 0 o più di 2 FV
@@ -169,19 +226,7 @@ public class TicketJira {
 		
 		if (fixedVersions.isEmpty()) {
 			
-			if(resolutionDate.compareTo(releases.get(0).getReleaseDate()) <=0) {
-				fixedVersions.add(releases.get(0).getName());
-			} else {
-			 
-				for (int i = 0; i<releases.size()-1; i++) {
-					ReleaseJira prevRelease = releases.get(i);
-					ReleaseJira nextRelease = releases.get(i+1);
-					
-					if (resolutionDate.after(prevRelease.getReleaseDate()) && (resolutionDate.compareTo(nextRelease.getReleaseDate()) <=0) ) {
-						fixedVersions.add(nextRelease.getName());
-					}
-				}
-			}
+			fixDataFixVersionEmpty(releases);
 		} else {
 			
 			HashMap<String, Date> mapVersionameDate= new HashMap<>();
@@ -193,51 +238,8 @@ public class TicketJira {
 		
 			while(iterator.hasNext()) {
 				String fixedVersionName = iterator.next();
-				try {
-					
-					//vediamo se la fixed version considerata è presente nella lista delle release
-					int index = -1;
-					boolean contained = false;
-					for (int i = 0; i < releases.size(); i++) {
-						if (fixedVersionName.equalsIgnoreCase(releases.get(i).getName())) {
-							index = i;
-							contained = true;
-							break;
-						}
-					}
-					
-					
-					if(!contained) {
-						//se non è presente significa che non conosco quella release
-						throw new UnknownReleaseException("Release " + fixedVersionName + " non trovata!");
-					} else {
-						//se è presente mi salvo la sua data di rilascio nella mappa
-						mapVersionameDate.put(fixedVersionName, releases.get(index).getReleaseDate());
-					}
-					
-				} catch (UnknownReleaseException e) {
-					
-					/*
-					 * Se la release è sconosciuta allora uso resolutionDate per determinare la FV
-					 * Quindi svuoto l'arraylist fixedVersions e cerco la prima release successiva a 
-					 * resolutionDate
-					 * In fase di ottenimento dei dati si sono già scartati i bug per cui resolutionDate
-					 * è successiva all'ultima release
-					 * */
-					for (int i = 0; i < fixedVersions.size(); i++) {
-						fixedVersions.remove(0);
-					}
-					
-					for (int i = 0; i<releases.size()-1; i++) {
-						ReleaseJira prevRelease = releases.get(i);
-						ReleaseJira nextRelease = releases.get(i+1);
-						
-						if (resolutionDate.after(prevRelease.getReleaseDate()) && (resolutionDate.compareTo(nextRelease.getReleaseDate()) <=0) ) {
-							fixedVersions.add(nextRelease.getName());
-							return;
-						}
-					}
-				}
+				createMapFixedVersionNameDate(releases, mapVersionameDate, fixedVersionName);
+				
 			}
 			
 			//prendo la versione più vecchia contenuta in mapVersionameDate

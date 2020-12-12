@@ -113,6 +113,15 @@ public class JiraAPI {
 		}
 		return sb.toString();
 	}
+	
+	private void addVersionsReleased(JSONArray versionsInJSON, List<String> versions) {
+		for (int k = 0; k<versionsInJSON.length(); k++) {
+			JSONObject version = versionsInJSON.getJSONObject(k);
+			if(version.getBoolean(RELEASED)) {
+				versions.add(version.get("name").toString());
+			}
+		}
+	}
 
 	public void getTicketsInfo(List<Bug> bugs, List<TicketJira> tickets, ReleaseJira lastRelease){
 
@@ -161,20 +170,9 @@ public class JiraAPI {
 				String creationDateString = issue.getJSONObject(FIELDS).getString("created");
 				Date creationDate = DateStringParser.getDateFromString(creationDateString);
 						
-				for (int k = 0; k<versionsInJSON.length(); k++) {
-					JSONObject version = versionsInJSON.getJSONObject(k);
-					if(version.getBoolean(RELEASED)) {
-						versions.add(version.get("name").toString());
-						
-						
-					}
-				}
-				for (int s = 0; s<fixVersionsInJSON.length();s++) {
-					JSONObject fixVersion = fixVersionsInJSON.getJSONObject(s);
-					if(fixVersion.getBoolean(RELEASED)) {
-						fixVersions.add(fixVersion.get("name").toString());
-					}
-				}
+				addVersionsReleased(versionsInJSON, versions);
+				addVersionsReleased(fixVersionsInJSON, fixVersions);
+				
 				
 				if( resolutionDate.before(lastRelease.getReleaseDate()) ) {
 					TicketJira ticket = new TicketJira();

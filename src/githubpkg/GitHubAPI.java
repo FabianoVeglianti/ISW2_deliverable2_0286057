@@ -14,6 +14,7 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -442,6 +443,35 @@ public class GitHubAPI {
 		
 	}
 	
+	private void analizeDiffForOneAV(String affectedVersionName,Diff diff, List<GitRelease> releases, String className, Set<String> classNameHistory) {
+		GitRelease affectedVersion = GitRelease.getReleaseByName((ArrayList<GitRelease>) releases, affectedVersionName);
+
+		ClassProject classProject = affectedVersion.getClassByName(className);
+		
+		if (classProject != null) {		
+
+			classProject.setBugginess(true);
+			classProject.getMeasure().increaseBugFixes();
+			ClassProject oldClassProject = classProject.getOldClassProject();
+			
+			while(oldClassProject != null) {
+				if(classNameHistory.contains(oldClassProject.getThisName()) || oldClassProject.getThisName().equalsIgnoreCase(className)){
+					break;
+				}
+				classNameHistory.add(oldClassProject.getThisName());
+				oldClassProject = oldClassProject.getOldClassProject();
+			}
+			
+		} 
+		for(String name: classNameHistory) {
+			ClassProject oldClassProject = affectedVersion.getClassByName(name);
+			if (oldClassProject != null) {			
+				oldClassProject.setBugginess(true);
+				oldClassProject.getMeasure().increaseBugFixes();
+			}
+		}
+	}
+	
 	private void analizeDiffForBugginess(Diff diff, List<GitRelease> releases, List<String> av) {
 		/*
 		 * Per ogni diff inizio cercando il nome del file modificato nel diff nell'ultima AV
@@ -456,32 +486,8 @@ public class GitHubAPI {
 		for(int i = av.size()-1; i>=0; i--) {
 			
 			String affectedVersionName = av.get(i);
-			GitRelease affectedVersion = GitRelease.getReleaseByName((ArrayList<GitRelease>) releases, affectedVersionName);
-
-			ClassProject classProject = affectedVersion.getClassByName(className);
+			analizeDiffForOneAV(affectedVersionName, diff, releases, className, classNameHistory);
 			
-			if (classProject != null) {		
-
-				classProject.setBugginess(true);
-				classProject.getMeasure().increaseBugFixes();
-				ClassProject oldClassProject = classProject.getOldClassProject();
-				
-				while(oldClassProject != null) {
-					if(classNameHistory.contains(oldClassProject.getThisName()) || oldClassProject.getThisName().equalsIgnoreCase(className)){
-						break;
-					}
-					classNameHistory.add(oldClassProject.getThisName());
-					oldClassProject = oldClassProject.getOldClassProject();
-				}
-				
-			} 
-			for(String name: classNameHistory) {
-				ClassProject oldClassProject = affectedVersion.getClassByName(name);
-				if (oldClassProject != null) {			
-					oldClassProject.setBugginess(true);
-					oldClassProject.getMeasure().increaseBugFixes();
-				}
-			}
 		}
 	}
 		
@@ -507,83 +513,100 @@ public class GitHubAPI {
 		}
 	}
 		
+	private void addHandling(GitCommit revision, DiffEntry diffEntry, GitRelease release) {
+		if(diffEntry.getNewPath().contains(EXT)) {
+			ClassProject classProject = release.getClassByName(diffEntry.getNewPath());
+			if(classProject == null) {
+				classProject = new ClassProject(diffEntry.getNewPath(), release.getName(), false);
+				classProject.setDateCreation(revision.getDate());
+				release.addClassToClassList(classProject);
+
+			} else {
+				if(classProject.getDateCreation() == null) {
+					classProject.setDateCreation(revision.getDate());
+				} else {
+					if(revision.getDate().before(classProject.getDateCreation())) {
+						classProject.setDateCreation(revision.getDate());
+					}
+				}
+			}
+		}
+	}
+	
+	private void deleteHandling(GitCommit revision, DiffEntry diffEntry, GitRelease release) {
+		if(diffEntry.getOldPath().contains(EXT)) {
+			ClassProject classProject = release.getClassByName(diffEntry.getOldPath());
+			if(classProject != null) {
+				classProject.setDeleted(true);
+			}
+		}
+	}
+	
+	private void renameHandling(GitCommit revision, DiffEntry diffEntry, GitRelease release) {
+		if(diffEntry.getNewPath().contains(EXT) && diffEntry.getOldPath().contains(EXT)) {
+			ClassProject classProject = release.getClassByName(diffEntry.getOldPath());
+			if(classProject != null) {
+				ClassProject newClassProject = classProject.renameThisClass(diffEntry.getNewPath());
+				release.addClassToClassList(newClassProject);
+			}
+		}
+	}
+	
+	private void copyHandling(GitCommit revision, DiffEntry diffEntry, GitRelease release) {
+		if(diffEntry.getNewPath().contains(EXT) && diffEntry.getOldPath().contains(EXT)) {
+			ClassProject classProject = release.getClassByName(diffEntry.getOldPath());
+			if(classProject != null) {
+				ClassProject newClassProject = classProject.copyThisClass(diffEntry.getNewPath());
+				release.addClassToClassList(newClassProject);
+			}
+		}
+	}
+	
+	private void modifyHandling(GitCommit revision, DiffEntry diffEntry, GitRelease release) {
+		if( diffEntry.getOldPath().contains(EXT) ) {
+    		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+    		
+    		DiffFormatter formatter = new DiffFormatter(outputStream);
+            formatter.setRepository(this.git.getRepository());
+            try { 
+            	formatter.format(diffEntry);
+            	String diffText = outputStream.toString();
+
+	        	Diff diff = parseDiffEntry(diffEntry, diffText);
+	
+	        	ClassProject classProject = release.getClassByName(diffEntry.getNewPath());
+	        	if(classProject != null) {
+		        	Measure classProjectMeasure = classProject.getMeasure();
+		        	classProjectMeasure.setMeasuresPerRelease(diff);
+				}
+        
+            } catch(Exception e ) {
+            	e.printStackTrace();
+            } finally {
+            	formatter.close();
+            }
+		}
+	}
 		
 	private void analyzeDiffEntries(GitCommit revision, List<DiffEntry> diffEntries, GitRelease release) {
-		
 	
 		for(DiffEntry diffEntry:diffEntries) {
 			switch(diffEntry.getChangeType()) {
 	    	case ADD:
-				if(diffEntry.getNewPath().contains(EXT)) {
-					ClassProject classProject = release.getClassByName(diffEntry.getNewPath());
-					if(classProject == null) {
-						classProject = new ClassProject(diffEntry.getNewPath(), release.getName(), false);
-						classProject.setDateCreation(revision.getDate());
-						release.addClassToClassList(classProject);
-
-					} else {
-						if(classProject.getDateCreation() == null) {
-							classProject.setDateCreation(revision.getDate());
-						} else {
-							if(revision.getDate().before(classProject.getDateCreation())) {
-								classProject.setDateCreation(revision.getDate());
-							}
-						}
-					}
-				}
+	    		addHandling(revision, diffEntry, release);
 				break;
 	    	case DELETE:
-				if(diffEntry.getOldPath().contains(EXT)) {
-					ClassProject classProject = release.getClassByName(diffEntry.getOldPath());
-					if(classProject != null) {
-						classProject.setDeleted(true);
-					}
-				}
+	    		deleteHandling(revision,diffEntry,release);
 				break;
 	    	case RENAME:
-				if(diffEntry.getNewPath().contains(EXT) && diffEntry.getOldPath().contains(EXT)) {
-					ClassProject classProject = release.getClassByName(diffEntry.getOldPath());
-					if(classProject != null) {
-						ClassProject newClassProject = classProject.renameThisClass(diffEntry.getNewPath());
-						release.addClassToClassList(newClassProject);
-					}
-				}
+	    		renameHandling(revision,diffEntry, release);
 				break;
 	    	case COPY:
-	    		if(diffEntry.getNewPath().contains(EXT) && diffEntry.getOldPath().contains(EXT)) {
-					ClassProject classProject = release.getClassByName(diffEntry.getOldPath());
-					if(classProject != null) {
-						ClassProject newClassProject = classProject.copyThisClass(diffEntry.getNewPath());
-						release.addClassToClassList(newClassProject);
-					}
-				}
+	    		copyHandling(revision,diffEntry,release);
 				break;
 	    	case MODIFY:
-	    		if( diffEntry.getOldPath().contains(EXT) ) {
-		    		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-		    		
-		    		DiffFormatter formatter = new DiffFormatter(outputStream);
-		            formatter.setRepository(this.git.getRepository());
-		            try { 
-		            	formatter.format(diffEntry);
-		            	String diffText = outputStream.toString();
-		
-			        	Diff diff = parseDiffEntry(diffEntry, diffText);
-			
-			        	ClassProject classProject = release.getClassByName(diffEntry.getNewPath());
-			        	if(classProject != null) {
-				        	Measure classProjectMeasure = classProject.getMeasure();
-				        	classProjectMeasure.setMeasuresPerRelease(diff);
-						}
-		        
-		            } catch(Exception e ) {
-		            	e.printStackTrace();
-		            } finally {
-		            	formatter.close();
-		            }
-	    		}
+	    		modifyHandling(revision,diffEntry,release);
 		        break;
-		        
 			default:
 				
 	    	}

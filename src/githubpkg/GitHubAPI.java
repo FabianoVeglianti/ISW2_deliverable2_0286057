@@ -9,8 +9,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
@@ -106,37 +104,8 @@ public class GitHubAPI {
 	}
 	
 	
-	public List<GitCommit> getCommits(){
-		ArrayList<GitCommit> commits = new ArrayList<>();  
-	    Iterable<RevCommit> iterableCommits = null;
-	 
-	    try {
-			git.checkout().setName(this.getDefaultBranchName()).call();
-			iterableCommits = git.log().call();
-		} catch (GitAPIException e) {
-			e.printStackTrace();
-		} 
-
-	    for (RevCommit commit: iterableCommits) {
-	    	ObjectId parentID;
-	    	
-	    	if (commit.getParentCount() == 0) {
-	    		parentID = null;
-	    	} else {
-	    		parentID = commit.getParent(0).getId();
-	    	}
-	    	ObjectId commitID = commit.getId();
-	    	Date date =  DateCreator.getDateFromEpoch(commit.getCommitTime() *1000L);
-	    	String message = commit.getFullMessage();
-	    	
-	    	GitCommit gitCommit = new  GitCommit(commitID, date, parentID, message);
-	    	commits.add(0, gitCommit);
-	    }
-
-	    return commits;
-	}
 	
-	public List<GitCommit> getCommits2(List<GitRelease> releases){
+	public List<GitCommit> getCommits(List<GitRelease> releases){
 	ArrayList<GitCommit> commits = new ArrayList<>();  
 		
 	for(int i = 0; i < releases.size(); i ++) {
@@ -364,33 +333,6 @@ public class GitHubAPI {
 	
 	}
 	
-	public void setRevisionsForRelease(List<GitCommit> commits, List<GitRelease> releases) {
-		//aggiunge ad ogni release una lista ordinata di revisioni (commit) tra quella release e 
-		//la release precedente
-		
-		//ordino i commit per data
-		Collections.sort(commits, new Comparator<GitCommit>() {
-			// @Override
-			public int compare(GitCommit c1, GitCommit c2) {
-				return c1.getDate().compareTo(c2.getDate());
-			}
-		});
-		
-		int index = 0;
-		for(GitRelease release:releases) {
-			
-			ArrayList<GitCommit> revisions = new ArrayList<>();
-			
-			while(commits.get(index).getDate().compareTo(release.getDate())<=0) {
-				revisions.add(commits.get(index));
-				index = index +1;
-			}
-			
-			release.setRevisions(revisions);
-		}
-		
-		
-	}
 	
 	
 	public List<GitCommit> getRevisionsBetweenTwoRelease(ObjectId startRelease, ObjectId endRelease) {

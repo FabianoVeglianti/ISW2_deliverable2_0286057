@@ -19,8 +19,8 @@ import jirapkg.TicketJira;
 
 public class MainCreateDataset {
 
-	private static String[] a ={"SYNCOPE", "syncope-"};
-//	other project variables private static String[] a = {"BOOKKEEPER", "release-"};
+
+private static String[] a = {"BOOKKEEPER", "release-"}; // {"SYNCOPE", "syncope-"}
 
 	
 	public static void main(String[] args) {
@@ -65,7 +65,7 @@ public class MainCreateDataset {
 		gitReleases = (ArrayList<GitRelease>) githubapi.fixGitReleaseList(gitReleases, releases);
 		
 		logger.log(Level.INFO,"Retrieving commits info from Jira...");
-		ArrayList<GitCommit> commits = (ArrayList<GitCommit>) githubapi.getCommits2(gitReleases);
+		ArrayList<GitCommit> commits = (ArrayList<GitCommit>) githubapi.getCommits(gitReleases);
 		
 		
 		ProportionMovingWindow proportion = new ProportionMovingWindow(releases.size(), bugs.size());

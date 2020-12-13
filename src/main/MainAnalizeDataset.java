@@ -11,8 +11,8 @@ import weka.core.Instances;
 
 public class MainAnalizeDataset {
 
-	public static final String PROJNAME = "BOOKKEEPER";
-	//other variable name public static final String PROJNAME = "SYNCOPE";
+	public static final String PROJNAME = "BOOKKEEPER"; // "SYNCOPE" 
+
 	
 	public static void main(String[] args) {
 		Analizer analizer = new Analizer(PROJNAME);

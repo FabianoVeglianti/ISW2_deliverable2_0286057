@@ -18,8 +18,9 @@ import org.json.JSONObject;
 import bug_tools.Bug;
 import date_tools.DateStringParser;
 
+
 import java.util.Collections;
-import java.util.Comparator;
+
 import java.util.Date;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -78,13 +79,21 @@ public class JiraAPI {
 					}
 				}
 				// order releases by date
-				Collections.sort(releasesJira, new Comparator<ReleaseJira>() {
+				System.out.println("PRIMA");
+				for(ReleaseJira release:releasesJira) {
+					System.out.println(release.getName());
+				}
+/*				Collections.sort(releasesJira, new Comparator<ReleaseJira>() {
 					// @Override
 					public int compare(ReleaseJira r1, ReleaseJira r2) {
 						return r1.getReleaseDate().compareTo(r2.getReleaseDate());
 					}
 				});
-				
+*/				Collections.sort(releasesJira, (r1, r2) -> r1.getReleaseDate().compareTo(r2.getReleaseDate()));
+				System.out.println("DOPO");
+				for(ReleaseJira release:releasesJira) {
+					System.out.println(release.getName());
+				}
 	
 				
 				int index = 1;

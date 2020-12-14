@@ -173,10 +173,10 @@ public class Analizer {
 				double parameter = 0;
 				numInstancesTrue = getNumInstancesTrue(trainingSet);
 				int numInstancesFalse = trainingSet.numInstances()-numInstancesTrue;
-				if(numInstancesTrue < numInstancesFalse) {
-					parameter = (double)numInstancesFalse-(double)numInstancesTrue/(double)numInstancesTrue*100.0;
-				} else {
-					parameter = (double)numInstancesTrue-(double)numInstancesFalse/(double)numInstancesFalse*100.0;
+				if(numInstancesTrue < numInstancesFalse && numInstancesTrue != 0) {
+					parameter = ((double)numInstancesFalse-(double)numInstancesTrue)/(double)numInstancesTrue*100.0;
+				} else if (numInstancesTrue >= numInstancesFalse && numInstancesFalse != 0){
+					parameter = ((double)numInstancesTrue-(double)numInstancesFalse)/(double)numInstancesFalse*100.0;
 				}
 	
 				opts = new String[] {"-P", String.valueOf(parameter)};
@@ -220,10 +220,12 @@ public class Analizer {
 			result.setDatasetValues(trainingSet, testSet, iterationIndex);
 		
 			//addestro il classificatore ed effettuo la predizione
-			classifier.buildClassifier(trainingSet);
+			if(classifier != null)
+				classifier.buildClassifier(trainingSet);
+			
 			Evaluation eval = new Evaluation(testSet);
 			eval.evaluateModel(classifier, testSet);
-			
+
 			
 			//salvo i risultati nell'oggetto result
 			result.setValues(eval, positiveResultIndex);

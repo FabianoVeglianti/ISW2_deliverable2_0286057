@@ -78,23 +78,10 @@ public class JiraAPI {
 						e.printStackTrace();
 					}
 				}
+				
 				// order releases by date
-				System.out.println("PRIMA");
-				for(ReleaseJira release:releasesJira) {
-					System.out.println(release.getName());
-				}
-/*				Collections.sort(releasesJira, new Comparator<ReleaseJira>() {
-					// @Override
-					public int compare(ReleaseJira r1, ReleaseJira r2) {
-						return r1.getReleaseDate().compareTo(r2.getReleaseDate());
-					}
-				});
-*/				Collections.sort(releasesJira, (r1, r2) -> r1.getReleaseDate().compareTo(r2.getReleaseDate()));
-				System.out.println("DOPO");
-				for(ReleaseJira release:releasesJira) {
-					System.out.println(release.getName());
-				}
-	
+				Collections.sort(releasesJira, (r1, r2) -> r1.getReleaseDate().compareTo(r2.getReleaseDate()));
+
 				
 				int index = 1;
 				for (int j = 0; j < releasesJira.size(); j++) {
@@ -153,6 +140,7 @@ public class JiraAPI {
 				json = readJsonFromUrl(url);
 			} catch (JSONException | IOException e) {
 				e.printStackTrace();
+				System.exit(0);
 			}
 			
 			

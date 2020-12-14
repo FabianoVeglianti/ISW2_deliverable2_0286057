@@ -20,7 +20,7 @@ import jirapkg.TicketJira;
 public class MainCreateDataset {
 
 
-private static String[] a = {"BOOKKEEPER", "release-"}; // {"SYNCOPE", "syncope-"}
+private static String[] a = {"BOOKKEEPER", "release-"}; // "SYNCOPE", "syncope-"
 
 	
 	public static void main(String[] args) {

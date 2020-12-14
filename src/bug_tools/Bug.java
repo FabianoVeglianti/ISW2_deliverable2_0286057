@@ -129,11 +129,17 @@ public class Bug {
 			}
 			
 		}
-		
-		if(openingVersion.getReleaseDate().after(fv.getReleaseDate())) {
-			ov = fv.getName();
-		} else {
-			ov = openingVersionName;
+		try {
+			if(openingVersion == null) {
+				throw new Exception("Opening Version null");
+			} else if(openingVersion.getReleaseDate().after(fv.getReleaseDate())) {
+				ov = fv.getName();
+			} else {
+				ov = openingVersionName;
+			}
+		} catch (Exception e) {
+			mylogger.log(Level.SEVERE, "Opening Version null");
+			System.exit(0);
 		}
 	}
 	

@@ -19,14 +19,10 @@ import jirapkg.TicketJira;
 
 public class MainCreateDataset {
 
-
-private static String[] a = {"BOOKKEEPER", "release-"}; // "SYNCOPE", "syncope-"
-
-	
-	public static void main(String[] args) {
+	private void createDataset(String[] input) {
 		Logger logger = Logger.getLogger(MainCreateDataset.class.getName());
-		String projName = a[0];
-		String prefix = a[1];
+		String projName = input[0];
+		String prefix = input[1];
 		
 		logger.log(Level.INFO,"Initialization repository ...");
 		JiraAPI jirapi= new JiraAPI(projName);
@@ -120,7 +116,16 @@ private static String[] a = {"BOOKKEEPER", "release-"}; // "SYNCOPE", "syncope-"
 		}
 		
 		logger.log(Level.INFO,"CSV written successfully.\nEnd of the program.");
+	}
 
+	private static final String[] a = {"BOOKKEEPER", "release-"}; // "SYNCOPE", "syncope-"
+	private static final String[] b = {"SYNCOPE", "syncope-"};
+	
+	public static void main(String[] args) {
+		MainCreateDataset mainObject = new MainCreateDataset();
+		mainObject.createDataset(a);
+		mainObject.createDataset(b);
+		
 	}
 	
 	

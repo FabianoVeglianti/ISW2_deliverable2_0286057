@@ -131,13 +131,13 @@ public class Bug {
 		}
 		try {
 			if(openingVersion == null) {
-				throw new Exception("Opening Version null");
+				throw new NullPointerException("Opening Version null");
 			} else if(openingVersion.getReleaseDate().after(fv.getReleaseDate())) {
 				ov = fv.getName();
 			} else {
 				ov = openingVersionName;
 			}
-		} catch (Exception e) {
+		} catch (NullPointerException e) {
 			mylogger.log(Level.SEVERE, "Opening Version null");
 			System.exit(0);
 		}

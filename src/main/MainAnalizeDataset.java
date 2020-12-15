@@ -11,11 +11,12 @@ import weka.core.Instances;
 
 public class MainAnalizeDataset {
 
-	public static final String PROJNAME = "BOOKKEEPER"; // "SYNCOPE" 
-
+	private static final String BOOKKEPER = "BOOKKEEPER"; // "SYNCOPE" 
+	private static final String SYNCOPE = "SYNCOPE";
 	
-	public static void main(String[] args) {
-		Analizer analizer = new Analizer(PROJNAME);
+	
+	private void analize(String projname) {
+		Analizer analizer = new Analizer(projname);
 		
 		
 		ArrayList<String> classifiers = new ArrayList<>(Arrays.asList("Random Forest", "Naive Bayes", "IBk"));
@@ -69,7 +70,7 @@ public class MainAnalizeDataset {
 			}
 
 			//scrivo i risultati in un csv
-			CsvWriter writer = new CsvWriter(PROJNAME);
+			CsvWriter writer = new CsvWriter(projname);
 			writer.writeResultCSV(resultList);
 			
 			
@@ -77,6 +78,11 @@ public class MainAnalizeDataset {
 			e.printStackTrace();
 		}
 		
-		
+	}
+	
+	public static void main(String[] args) {
+		MainAnalizeDataset main = new MainAnalizeDataset();
+		main.analize(BOOKKEPER);
+		main.analize(SYNCOPE);
 	}
 }

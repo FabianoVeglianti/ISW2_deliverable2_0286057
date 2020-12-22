@@ -164,10 +164,18 @@ public class Result {
 		fp = eval.numFalsePositives(positiveResultIndex);
 		tn = eval.numTrueNegatives(positiveResultIndex);
 		fn = eval.numFalseNegatives(positiveResultIndex);
-		this.precision = eval.precision(positiveResultIndex);
-		this.recall = eval.recall(positiveResultIndex);
-		this.auc = eval.areaUnderROC(positiveResultIndex);
-		this.kappa = eval.kappa();
+		if(tp == 0 && fp == 0 && fn == 0) {
+			this.precision = 1;
+			this.recall = 1;
+		} else if (tp == 0 && (fp > 0 || fn > 0)) {
+			this.precision = 0;
+			this.recall = 0;
+		} else {
+			this.precision = eval.precision(positiveResultIndex);
+			this.recall = eval.recall(positiveResultIndex);
+			this.auc = eval.areaUnderROC(positiveResultIndex);
+			this.kappa = eval.kappa();
+		}
 	}
 	
 	public Result(String classifierName, String featureSelectionName, String resamplingMethodName) {

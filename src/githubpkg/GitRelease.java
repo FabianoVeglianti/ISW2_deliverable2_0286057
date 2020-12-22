@@ -59,8 +59,16 @@ public class GitRelease {
 		} else {
 			int size = existsClass.getMeasure().getSize();
 			boolean classTakenFromCommit = existsClass.isClassTakenFromCommit();
+			boolean bugginess = existsClass.isBugginess();
 			classProject.getMeasure().setSize(size);
 			classProject.setClassTakenFromCommit(classTakenFromCommit);
+			classProject.setBugginess(bugginess);
+			
+			for(String ticket: existsClass.getBugInClass()) {
+				classProject.getBugInClass().add(ticket);
+			}
+			
+			classProject.getBugInClass().addAll(existsClass.getBugInClass());
 			this.classes.remove(existsClass.getThisName());
 			this.classes.put(classProject.getThisName(), classProject);
 		}
@@ -121,6 +129,13 @@ public class GitRelease {
 		for(ClassProject classProject: classes.values()) {
 			classProject.setAge(this.getDate());
 		}
+	}
+
+	public void setNumBugOfClasses() {
+		for(ClassProject classProject: classes.values()) {
+			classProject.getMeasure().setNumberBugFixes(classProject.getBugInClass().size());
+		}
+		
 	}
 	
 	

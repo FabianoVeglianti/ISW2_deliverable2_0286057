@@ -2,6 +2,8 @@ package datapkg;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 
 import bug_tools.Diff;
 import date_tools.DateComputer;
@@ -20,6 +22,7 @@ public class ClassProject {
 	private Measure measure;
 	private Date dateCreation;
 	private boolean classTakenFromCommit;
+	private Set<String> bugInClassHistory;
 	
 	public ClassProject(String name, String releaseName, boolean classTakenFromCommit) {
 		setNewClassProject(null);
@@ -30,6 +33,7 @@ public class ClassProject {
 		this.bugginess = false;
 		this.deleted = false;
 		this.setClassTakenFromCommit(classTakenFromCommit);
+		this.bugInClassHistory = new TreeSet<String>();
 	}
 	
 	public boolean getDeleted() {
@@ -142,10 +146,11 @@ public class ClassProject {
 		
 		newClass.setMeasure(this.measure.copyMeasure());
 		newClass.setOldClassProject(this);
-		
+		newClass.getBugInClass().addAll(this.getBugInClass());
 		
 		thisNameIsNew = false;
 		thisNameIsOld = true;
+		this.setDeleted(true);
 		this.setNewClassProject(newClass);
 		return newClass;
 	}
@@ -175,11 +180,13 @@ public class ClassProject {
 		
 		ClassProject newClass = new ClassProject(newName, this.releaseName, false);
 		newClass.setDateCreation(this.getDateCreation());
-		newClass.setBugginess(this.bugginess);
+		newClass.setBugginess(this.isBugginess());
 		newClass.setDeleted(false);
 		newClass.setThisNameIsNew(true);
 		newClass.setThisNameIsOld(false);
 		newClass.setOldClassProject(this.oldClassProject);
+		newClass.getBugInClass().addAll(this.getBugInClass());
+
 		//mi porto avanti le misure perché mi porto avanti anche la bugginess
 		newClass.setMeasure(this.measure.copyMeasure());
 		
@@ -207,6 +214,14 @@ public class ClassProject {
 
 	public void setClassTakenFromCommit(boolean classTakenFromCommit) {
 		this.classTakenFromCommit = classTakenFromCommit;
+	}
+
+	public Set<String> getBugInClass() {
+		return bugInClassHistory;
+	}
+
+	public void setBugInClass(Set<String> bugInClass) {
+		this.bugInClassHistory = bugInClass;
 	}
 	
 }

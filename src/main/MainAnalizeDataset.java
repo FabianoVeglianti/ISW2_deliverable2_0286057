@@ -3,6 +3,8 @@ package main;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Enumeration;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import analysis.Analizer;
 import analysis.Result;
@@ -10,7 +12,7 @@ import file_handler.CsvWriter;
 import weka.core.Instances;
 
 public class MainAnalizeDataset {
-
+	Logger logger = Logger.getLogger(MainAnalizeDataset.class.getName());
 	private static final String BOOKKEPER = "BOOKKEEPER"; // "SYNCOPE" 
 	private static final String SYNCOPE = "SYNCOPE";
 	
@@ -26,6 +28,7 @@ public class MainAnalizeDataset {
 		
 		try {
 			//carico il file
+			logger.log(Level.INFO,"Load dataset...");
 			Instances data = analizer.loadFile();
 			
 			//elimino le colonne relative al nome della versione e al nome del file
@@ -55,6 +58,7 @@ public class MainAnalizeDataset {
 			
 			//per ogni classificatore, per ogni metodo di feature selection, per ogni metodo di balancing, per ogni iterazione di walk forward
 			//mi salvo il risultato 
+			logger.log(Level.INFO,"Computing results...");
 			for(String classifierName: classifiers) {
 				for(String featureSelectionName: featureSelectionMethods){
 					for(String resamplingMethodName:resamplingMethods) 		{	
@@ -70,6 +74,7 @@ public class MainAnalizeDataset {
 			}
 
 			//scrivo i risultati in un csv
+			logger.log(Level.INFO,"Writing CSV...");
 			CsvWriter writer = new CsvWriter(projname);
 			writer.writeResultCSV(resultList);
 			
@@ -77,7 +82,7 @@ public class MainAnalizeDataset {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		
+		logger.log(Level.INFO,"CSV written successfully.\nEnd of the program.");
 	}
 	
 	public static void main(String[] args) {

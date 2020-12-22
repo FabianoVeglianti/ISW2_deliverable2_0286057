@@ -17,6 +17,7 @@ import jirapkg.JiraAPI;
 import jirapkg.ReleaseJira;
 import jirapkg.TicketJira;
 
+
 public class MainCreateDataset {
 
 	private void createDataset(String[] input) {
@@ -60,7 +61,7 @@ public class MainCreateDataset {
 		}
 		gitReleases = (ArrayList<GitRelease>) githubapi.fixGitReleaseList(gitReleases, releases);
 		
-		logger.log(Level.INFO,"Retrieving commits info from Jira...");
+		logger.log(Level.INFO,"Retrieving commits info from Github...");
 		ArrayList<GitCommit> commits = (ArrayList<GitCommit>) githubapi.getCommits(gitReleases);
 		
 		
@@ -105,9 +106,14 @@ public class MainCreateDataset {
 
 		githubapi.setRevisionsForRelease(gitReleases);
 		logger.log(Level.INFO,"Computing measures and bugginess...");
-		githubapi.setClassPerReleaseMeasures(gitReleases);
 		
+		
+		githubapi.setBugPerClass(bugs, gitReleases);
+		githubapi.setClassPerReleaseMeasures(gitReleases);
 		githubapi.setBugginess(bugs, gitReleases);
+	
+		System.out.println();
+
 		logger.log(Level.INFO,"Writing CSV...");
 		try {
 			csvWriter.writeDatasetCSV(gitReleases);
@@ -118,7 +124,7 @@ public class MainCreateDataset {
 		logger.log(Level.INFO,"CSV written successfully.\nEnd of the program.");
 	}
 
-	private static final String[] a = {"BOOKKEEPER", "release-"}; // "SYNCOPE", "syncope-"
+	private static final String[] a = {"BOOKKEEPER", "release-"};
 	private static final String[] b = {"SYNCOPE", "syncope-"};
 	
 	public static void main(String[] args) {

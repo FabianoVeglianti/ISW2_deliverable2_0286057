@@ -159,6 +159,11 @@ public class Result {
 		this.kappa = kappa;
 	}
 
+	
+	/**
+	 * Imposta i valori delle varie metriche.
+	 * Nei casi limiti si seguono le indicazioni qui ripostate https://github.com/dice-group/gerbil/wiki/Precision,-Recall-and-F1-measure
+	 * */
 	public void setValues(Evaluation eval, int positiveResultIndex) {
 		tp = eval.numTruePositives(positiveResultIndex);
 		fp = eval.numFalsePositives(positiveResultIndex);

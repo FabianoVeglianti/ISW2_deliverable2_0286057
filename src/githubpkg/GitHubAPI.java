@@ -68,6 +68,9 @@ public class GitHubAPI {
 	    return false;
 	}
 	
+	/**
+	 * Inizializza l'oggetto Git effettuando il clone o il checkout della repository 
+	 * */
 	public void init() {
 		String uri = URL + projNameMin + ".git";
 		try {
@@ -86,6 +89,9 @@ public class GitHubAPI {
 		} 
 	}
 	
+	/**
+	 * Ottiene il nome del branch di default
+	 * */
 	private String getDefaultBranchName() {
 		try {
 		    List<Ref> branches = git.branchList().setListMode(ListMode.ALL).call();
@@ -105,7 +111,9 @@ public class GitHubAPI {
 	}
 	
 	
-	
+	/**
+	 * Restituisce la lista dei commits per un progetto come la lista dei commits che separano le varie release del progetto
+	 * */
 	public List<GitCommit> getCommits(List<GitRelease> releases){
 	ArrayList<GitCommit> commits = new ArrayList<>();  
 		
@@ -120,7 +128,9 @@ public class GitHubAPI {
 	    return commits;
 	}
 	
-	
+	/**
+	 * Restituisce la lista delle releases di un progetto
+	 * */
 	public List<GitRelease> getReleases() {
 		
 		ArrayList<GitRelease> releases = new ArrayList<>();
@@ -167,7 +177,8 @@ public class GitHubAPI {
 	}
 	
 	/**La lista delle release in Git è più grande della lista delle release in Jira
-	 * dunque per ogni release presa da Jira ci teniamo la corrispondente release presa da Git*/
+	 * dunque per ogni release presa da Jira ci teniamo la corrispondente release presa da Git
+	 * */
 	public List<GitRelease> fixGitReleaseList(List<GitRelease> gitReleases, List<ReleaseJira> jiraReleases) {
 	
 		ArrayList<GitRelease> releases = new ArrayList<>();
@@ -197,7 +208,9 @@ public class GitHubAPI {
 	
 	
 	
-	/**Data una release setta la lista dei file .java appartenenti a questa release*/
+	/**
+	 * Data una release setta la lista dei file .java appartenenti a questa release
+	 * */
 	public void setClassesRelease(GitRelease release){
 		
 		//aggiungere questo attributo alla classe git release
@@ -242,7 +255,9 @@ public class GitHubAPI {
 		
 	}
 	
-	
+	/**
+	 * Effettua il parsing di una entry del risultato di un diff
+	 * */
 	private Diff parseDiffEntry(DiffEntry diffEntry, String diffText) {
 		
 		Diff diff = new Diff(diffEntry.getNewPath(), diffEntry.getOldPath());
@@ -281,10 +296,11 @@ public class GitHubAPI {
 		return diff;
 	}
 	
+	/**
+	 * Effettua il comando diff tra il commit per fixare il bug e il commit precedente, cerca dunque i file .java modificati,
+	 * ritorna la lista dei Diff effettuati per fixare un bug
+	 * */
 	private ArrayList<Diff> getClassChanges(Bug bug) {
-		//effettua il diff tra il commit per fixare il bug e il commit precedente, cerca dunque i file .java
-		//modificati, per ogni versione nella lista delle AV del bug, imposto a 1 la bugginess delle classi
-		//modificate che ricavo dal diff.
 		
 		GitCommit commit = bug.getLastCommit();
 		
@@ -335,7 +351,9 @@ public class GitHubAPI {
 	}
 	
 	
-	
+	/**
+	 * Restituisce la lista di commit tra due releases
+	 * */
 	public List<GitCommit> getRevisionsBetweenTwoRelease(ObjectId startRelease, ObjectId endRelease) {
 		
 		LogCommand logCommand = this.git.log();
@@ -373,7 +391,9 @@ public class GitHubAPI {
 
 	}
 	
-	
+	/**
+	 * Per ogni release imposta come revisioni relative alla release la lista dei commit che separa quella release dalla precedente
+	 * */
 	public void setRevisionsForRelease(List<GitRelease> releases) {
 			
 		for(int i = 0; i < releases.size(); i ++) {
@@ -386,6 +406,11 @@ public class GitHubAPI {
 		
 	}
 	
+	/**
+	 * Imposta a true la bugginess di una classe in un release.
+	 * Controlla che la classe non abbia cambiato nome durante lo sviluppo della release, se lo ha fatto imposta a true la bugginess anche per 
+	 * gli oggetti ClassProject con nome vecchio. 
+	 * */
 	private void analizeDiffForOneAV(String affectedVersionName, List<GitRelease> releases, String className, Set<String> classNameHistory) {
 		GitRelease affectedVersion = GitRelease.getReleaseByName((ArrayList<GitRelease>) releases, affectedVersionName);
 
@@ -414,15 +439,16 @@ public class GitHubAPI {
 
 	}
 	
-	private void analizeDiffForBugginess(String ticket, Diff diff, List<GitRelease> releases, List<String> av) {
-		/*
-		 * Per ogni diff inizio cercando il nome del file modificato nel diff nell'ultima AV
-		 * Se lo trovo mi salvo tutti i nomi assunti dallo stesso file durante la storia del progetto
-		 * il motivo è che nelle AVs precedenti all'ultima AV considerata il file potrebbe avere un
-		 * nome diverso da quello contenuto nel diff.
-		 * Dunque quando vado indietro con le AVs se non trovo la classe cerco i vecchi nomi della
-		 * stessa.
-		 * */
+	/**
+	 * Per ogni diff inizio cercando il nome del file modificato nel diff nell'ultima AV
+	 * Se lo trovo mi salvo tutti i nomi assunti dallo stesso file durante la storia del progetto
+	 * il motivo è che nelle AVs precedenti all'ultima AV considerata il file potrebbe avere un
+	 * nome diverso da quello contenuto nel diff.
+	 * Dunque quando vado indietro con le AVs se non trovo la classe cerco i vecchi nomi della
+	 * stessa.
+	 * */
+	private void analizeDiffForBugginess(Diff diff, List<GitRelease> releases, List<String> av) {
+		
 		String className = diff.getOldPath();
 		TreeSet<String> classNameHistory = new TreeSet<>();
 
@@ -434,23 +460,20 @@ public class GitHubAPI {
 		}
 	}
 		
+	/**
+	 * Partendo dalla lista dei bugs e dalla lista delle releases imposta la bugginess delle classi nelle release in accordo alle informazioni
+	 * contenute nella lista dei bug.
+	 * */
 	public void setBugginess(List<Bug> bugs, List<GitRelease> releases) {
 		
 		for (Bug bug: bugs) {	
 			
-			
-			
 			ArrayList<Diff> diffList = getClassChanges(bug);
 			ArrayList<String> av = (ArrayList<String>) bug.getAV();
 			
-			
 			for(Diff diff: diffList) {
 
-				analizeDiffForBugginess(bug.getTicketID(), diff, releases, av);
-				
-				
-				
-				
+				analizeDiffForBugginess(diff, releases, av);
 				
 			}
 
@@ -458,6 +481,9 @@ public class GitHubAPI {
 		
 	}
 		
+	/**
+	 * Gestisce l'operazione ADD
+	 * */
 	private void addHandling(GitCommit revision, DiffEntry diffEntry, GitRelease release) {
 		if(diffEntry.getNewPath().contains(EXT)) {
 			ClassProject classProject = release.getClassByName(diffEntry.getNewPath());
@@ -478,6 +504,9 @@ public class GitHubAPI {
 		}
 	}
 	
+	/**
+	 * Gestisce l'operazione DELETE
+	 * */
 	private void deleteHandling(DiffEntry diffEntry, GitRelease release) {
 		if(diffEntry.getOldPath().contains(EXT)) {
 			ClassProject classProject = release.getClassByName(diffEntry.getOldPath());
@@ -487,10 +516,10 @@ public class GitHubAPI {
 		}
 	}
 	
+	/**
+	 * Gestisce l'operazione RENAME
+	 * */
 	private void renameHandling(DiffEntry diffEntry, GitRelease release) {
-		
-
-		
 		
 		if(diffEntry.getNewPath().contains(EXT) && diffEntry.getOldPath().contains(EXT)) {
 			ClassProject classProject = release.getClassByName(diffEntry.getOldPath());
@@ -501,8 +530,10 @@ public class GitHubAPI {
 		}
 	}
 	
+	/**
+	 * Gestisce l'operazione COPY
+	 * */
 	private void copyHandling(DiffEntry diffEntry, GitRelease release) {
-		
 		
 		if(diffEntry.getNewPath().contains(EXT) && diffEntry.getOldPath().contains(EXT)) {
 			ClassProject classProject = release.getClassByName(diffEntry.getOldPath());
@@ -513,6 +544,10 @@ public class GitHubAPI {
 		}
 	}
 	
+	/**
+	 * Gestisce l'operazione MODIFY
+	 * Aggiorna le metriche delle classi modificate.
+	 * */
 	private void modifyHandling(DiffEntry diffEntry, GitRelease release) {
 		if( diffEntry.getOldPath().contains(EXT) ) {
     		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
@@ -540,7 +575,9 @@ public class GitHubAPI {
 	}
 		
 	
-	
+	/**
+	 * Analizza le entry del comando diff relativo ad un commit in una release.
+	 * */
 	private void analyzeDiffEntries(GitCommit revision, List<DiffEntry> diffEntries, GitRelease release) {
 	
 		for(DiffEntry diffEntry:diffEntries) {
@@ -568,6 +605,10 @@ public class GitHubAPI {
 	
 	}
 	
+	/**
+	 * Copia nella release successiva tutti i file della release attuale non eliminati che non esistono nella prossima release
+	 * Aggiorna i file della prossima release con i dati dei file omonimi della release attuale
+	 * */
 	private void prepareNextReleaseFiles(GitRelease release, GitRelease nextRelease) {
 		for(Entry<String, ClassProject> entry: release.getClasses().entrySet()) {
 			ClassProject classProject = entry.getValue();
@@ -584,9 +625,10 @@ public class GitHubAPI {
 		}
 	}
 	
-	
+	/**
+	 * Per ogni classe in ogni release imposta le metriche e la bugginess
+	 * */
 	public void setClassPerReleaseMeasures(List<GitRelease> releases) {
-		
 		
 		for(int x = 0; x < releases.size(); x++) {
 			GitRelease release = releases.get(x);
@@ -638,6 +680,11 @@ public class GitHubAPI {
 		
 	}
 
+	/**
+	 * Data una classe affetta da un bug in una certa release, ottiene l'oggetto ClassProject nella lista delle classi della release
+	 * e aggiunge all'insieme dei bug di cui quell'oggetto è affetto il nome del bug in questione.
+	 * Questo metodo serve esclusivamente per il calcolo del numero di bug con cui una classe è affetta.
+	 * */
 	private void analizeDiffForAddingBugginessOneAV(String ticket, String affectedVersionName, List<GitRelease> releases, String className) {
 		GitRelease affectedVersion = GitRelease.getReleaseByName((ArrayList<GitRelease>) releases, affectedVersionName);
 
@@ -651,6 +698,11 @@ public class GitHubAPI {
 	
 	}
 	
+	/**
+	 * Data una classe affetta da un bug esistente in un insieme di release, aggiunge il nome del bug nell'insieme dei bug che affliggono quella
+	 * classe in ciascuna release.
+	 * Questo metodo serve esclusivamente per il calcolo del numero di bug con cui una classe è affetta.
+	 * */
 	private void analizeDiffForAddingBugginess(String ticket, Diff diff, List<GitRelease> releases, List<String> av) {
 		String className = diff.getOldPath();
 
@@ -662,6 +714,10 @@ public class GitHubAPI {
 		}
 	}
 	
+	/**
+	 * Data la lista dei bug esistiti nella storia del progetto, per ciascun bug invoca analizeDiffForAddingBugginess
+	 * Questo metodo serve esclusivamente per il calcolo del numero di bug con cui una classe è affetta.
+	 * */
 	public void setBugPerClass(List<Bug> bugs, List<GitRelease> releases) {
 		for (Bug bug: bugs) {	
 			

@@ -38,8 +38,10 @@ public class ProportionMovingWindow {
 	}
 	
 	
-	//aggiorna la finestra: scorre avanti di una posizione e sostituisce il valore contenuto in questa 
-	//posizione con il valore di P per il bug corrente
+	/**
+	 * Aggiorna la finestra: scorre avanti di una posizione e sostituisce il valore contenuto in questa 
+	 * posizione con il valore di P per il bug corrente
+	 * */
 	public void updateWindow(int ivIndex, int ovIndex, int fvIndex) {
 		index = (index+1)%windowSize;
 		if (fvIndex - ovIndex != 0) {
@@ -56,23 +58,22 @@ public class ProportionMovingWindow {
 		
 	}
 	
+	/**
+	 * Restituisce l'indice della IV predetto a partire dall'indice della OV e della FV
+	 * */
 	public int predictIVindex(int ovIndex, int fvIndex) {
 		double p = 0;
 		
 		if (isWindowFull) {
-			
 			for (int i = 0; i < windowSize; i++) {
 				p = p + windowP[i];
 			}
 			p = p/(windowSize);
-
 		} else {
-			
 			for (int i = 0; i < index + 1; i++) {
 				p = p + windowP[i];
 			}
 			p = p/(index + 2);
-
 		}
 
 		double doublePredictedIVindex = (double)fvIndex - p * (double)(fvIndex - ovIndex);

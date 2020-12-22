@@ -41,7 +41,7 @@ public class MainCreateDataset {
 		ArrayList<Bug> bugs = new ArrayList<>();
 		logger.log(Level.INFO,"Retrieving tickets info from Jira...");
 		jirapi.getTicketsInfo(bugs, tickets, releases.get(releases.size()-1));
-
+		
 		for (TicketJira ticket:tickets) {
 			
 			ticket.fixData(releases);
@@ -54,6 +54,7 @@ public class MainCreateDataset {
 		//ottieni i commits
 		logger.log(Level.INFO,"Retrieving releases info from Github...");
 		ArrayList<GitRelease> gitReleases = (ArrayList<GitRelease>) githubapi.getReleases();
+	
 		for (GitRelease release: gitReleases) {
 			if(release.getName().startsWith(prefix)) {
 				release.setName(release.getName().substring(prefix.length()));
@@ -88,7 +89,7 @@ public class MainCreateDataset {
 					logger.log(Level.INFO,"There are no tickets for this project.\nEnd of the program.");
 				}
 				
-				bug.setVersions(associatedTicket, releases, proportion);
+				bug.setInjectedVersions(associatedTicket, releases, proportion);
 			}
 		}
 		
@@ -99,11 +100,11 @@ public class MainCreateDataset {
 			
 		}
 
-		
+
 		for (GitRelease release: gitReleases) {
 			githubapi.setClassesRelease(release);
 		} 
-
+	
 		githubapi.setRevisionsForRelease(gitReleases);
 		logger.log(Level.INFO,"Computing measures and bugginess...");
 		

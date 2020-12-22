@@ -132,6 +132,11 @@ public class ClassProject {
 		this.oldClassProject = oldClassProject;
 	}
 
+	/**
+	 * Dato il nuovo nome della classe, crea e restituisce un oggetto ClassProject che rappresenta la stessa classe con nuovo nome
+	 * le misure della nuova classe sono uguali a quelle della vecchia e tutti i bug che affliggevano la vecchia affliggono la nuova.
+	 * La classe su cui viene chiamato il metodo smette di esistere.
+	 * */
 	public ClassProject renameThisClass(String newName) {
 		if(this.thisNameIsOld) {
 			return this.getNewClassProject();
@@ -155,6 +160,9 @@ public class ClassProject {
 		return newClass;
 	}
 	
+	/**
+	 * Aggiorna i dati di una classe esistente utilizzando i dati della classe passata come parametro
+	 * */
 	public void updateClassUsing(ClassProject otherClass) {
 		//se la classe è già contenuta nell'insieme delle classi di una release allora
 		if(this.getDateCreation() == null || otherClass.getDateCreation().before(this.getDateCreation())){
@@ -175,6 +183,11 @@ public class ClassProject {
 		
 	}
 	
+	/**
+	 * Dato il nuovo nome della classe, crea e restituisce un oggetto ClassProject che rappresenta la stessa classe con nuovo nome
+	 * le misure della nuova classe sono uguali a quelle della vecchia e tutti i bug che affliggevano la vecchia affliggono la nuova.
+	 * La classe su cui viene chiamato il metodo NON smette di esistere.
+	 * */
 	public ClassProject copyThisClass(String newName) {
 		
 		

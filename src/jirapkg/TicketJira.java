@@ -48,7 +48,6 @@ public class TicketJira {
 	public Date getCreationDate() {
 		return creationDate;
 	}
-	
 	public void setCreationDate(Date creationDate) {
 		this.creationDate = creationDate;
 	}
@@ -60,6 +59,7 @@ public class TicketJira {
 		this.resolutionDate = resolutionDate;
 	}
 	
+
 	public boolean hasAV() {
 		return !this.affectedVersions.isEmpty();
 	}
@@ -94,6 +94,9 @@ public class TicketJira {
 		}
 	}
 	
+	/**
+	 * Data la lista delle release, ritorna la release meno recente che sia contenuta nella variabile affectedVersions.
+	 * */
 	public String getInjectedVersion(List<ReleaseJira> releases) {
 		HashMap<String, Date> mapVersionameDate= new HashMap<>();
 		
@@ -158,6 +161,9 @@ public class TicketJira {
 		
 	}
 	
+	/**
+	 * Data la lista delle release, aggiunge la prima versione successiva (in ordine cronologico) alla data di risoluzione del ticket.
+	 * */
 	private void fixDataFixVersionEmpty(List<ReleaseJira> releases) {
 		if(resolutionDate.compareTo(releases.get(0).getReleaseDate()) <=0) {
 			fixedVersions.add(releases.get(0).getName());

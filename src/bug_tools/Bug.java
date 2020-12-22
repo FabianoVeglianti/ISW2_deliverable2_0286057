@@ -68,9 +68,12 @@ public class Bug {
 		commitList.add(commit);
 	}
 	
+	/**
+	 * Associa ad un bug la lista dei commit in cui compare il ticket relativo a quel bug
+	 * */
 	public void setCommitList(List<GitCommit> commitList) {
 		boolean match = false;
-		//associa ad un bug la lista dei commit in cui compare il ticket relativo a quel bug
+	
 		for(GitCommit commit: commitList) {
 		
 			String myTicketID = this.getTicketID();
@@ -85,6 +88,7 @@ public class Bug {
 		}
 
 	}
+	
 	
 	public static void reverseArrayList(List<Bug> arraylist) {
 		int size = arraylist.size();
@@ -109,6 +113,10 @@ public class Bug {
 	}
 
 
+	
+	/**
+	 * Imposta la opening version di un bug come la prima release successiva alla data di creazione del bug.
+	 * */
 	public void setOpeningVersion(TicketJira ticket, List<ReleaseJira> releases, ReleaseJira fv) {
 		
 		Date creationDate = ticket.getCreationDate();
@@ -144,7 +152,8 @@ public class Bug {
 	}
 	
 	
-	/*
+	/**
+	 * Ritorna true se i dati di jira sono ok, false altrimenti
 	 * I dati di jira sono ok se IV < OV quando OV = FV, perché IV non può essere uguale a FV
 	 * oppure se IV <= OV se OV < FV
 	 * */
@@ -180,8 +189,11 @@ public class Bug {
 	
 	}
 	
-	//l'OV e la FV sono settate, calcola IV partendo dai dati in Jira
-	//aggiorna la finestra di proportion
+	/**
+	 *Prerequisito: l'OV e la FV sono settate, 
+	 *Calcola IV partendo dai dati in Jira
+	 *Aggiorna la finestra di proportion
+	 * */
 	private void setVersionsFromJiraData(TicketJira ticket, ArrayList<ReleaseJira> releases, ProportionMovingWindow proportion) {
 		
 		int ivIndex = 0;
@@ -220,7 +232,10 @@ public class Bug {
 		
 	}
 	
-	//l'OV e la FV sono settate: applica proportion per calcolare l' IV
+	/**
+	 * Prerequisito: l'OV e la FV sono settate.
+	 * Applica proportion per calcolare l' IV
+	 */
 	private void setVersionsUsingProportion(TicketJira ticket, ArrayList<ReleaseJira> releases, ProportionMovingWindow proportion) {
 		
 		int ovIndex = 0;
@@ -254,7 +269,11 @@ public class Bug {
 		
 	}
 	
-	public void setVersions(TicketJira ticket, List<ReleaseJira> releases, ProportionMovingWindow proportion) {
+	
+	/**
+	 * Associa ad un bug l'IV
+	 * */
+	public void setInjectedVersions(TicketJira ticket, List<ReleaseJira> releases, ProportionMovingWindow proportion) {
 		
 		
 		if(ticket.hasAV()) {
@@ -266,11 +285,11 @@ public class Bug {
 
 		
 			if(result) {
-				//se l'IV è prima della OV, cioè i dati in jira sono coerenti, allora li uso
+				//se i dati in jira sono ok, allora li uso
 				this.setVersionsFromJiraData(ticket, (ArrayList<ReleaseJira>) releases, proportion);
 			
 			} else {
-				//se l'IV è uguale o successiva alla OV allora devo usare proportion
+				//se i dati di jira non sono ok allora devo usare proportion
 				this.setVersionsUsingProportion(ticket, (ArrayList<ReleaseJira>) releases, proportion);
 			
 			}

@@ -33,7 +33,7 @@ public class ClassProject {
 		this.bugginess = false;
 		this.deleted = false;
 		this.setClassTakenFromCommit(classTakenFromCommit);
-		this.bugInClassHistory = new TreeSet<String>();
+		this.bugInClassHistory = new TreeSet<>();
 	}
 	
 	public boolean getDeleted() {

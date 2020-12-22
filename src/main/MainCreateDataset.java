@@ -112,7 +112,7 @@ public class MainCreateDataset {
 		githubapi.setClassPerReleaseMeasures(gitReleases);
 		githubapi.setBugginess(bugs, gitReleases);
 	
-		System.out.println();
+
 
 		logger.log(Level.INFO,"Writing CSV...");
 		try {

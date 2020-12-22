@@ -386,7 +386,7 @@ public class GitHubAPI {
 		
 	}
 	
-	private void analizeDiffForOneAV(String ticket, String affectedVersionName, List<GitRelease> releases, String className, Set<String> classNameHistory) {
+	private void analizeDiffForOneAV(String affectedVersionName, List<GitRelease> releases, String className, Set<String> classNameHistory) {
 		GitRelease affectedVersion = GitRelease.getReleaseByName((ArrayList<GitRelease>) releases, affectedVersionName);
 
 		ClassProject classProject = affectedVersion.getClassByName(className);
@@ -425,17 +425,11 @@ public class GitHubAPI {
 		 * */
 		String className = diff.getOldPath();
 		TreeSet<String> classNameHistory = new TreeSet<>();
-		if(av.size()>1) {
-			
-			System.out.println("CLASSE " + className);
-			for(String aff:av) {
-				System.out.println(aff);
-			}
-		}
+
 		for(int i = av.size()-1; i>=0; i--) {
 			
 			String affectedVersionName = av.get(i);
-			analizeDiffForOneAV(ticket, affectedVersionName, releases, className, classNameHistory);
+			analizeDiffForOneAV(affectedVersionName, releases, className, classNameHistory);
 			
 		}
 	}
@@ -574,7 +568,7 @@ public class GitHubAPI {
 	
 	}
 	
-	private void prepareNextReleaseFiles(GitRelease release, GitRelease nextRelease, List<GitRelease> releases) {
+	private void prepareNextReleaseFiles(GitRelease release, GitRelease nextRelease) {
 		for(Entry<String, ClassProject> entry: release.getClasses().entrySet()) {
 			ClassProject classProject = entry.getValue();
 			classProject = release.getClassByName(classProject.getThisName());
@@ -634,7 +628,7 @@ public class GitHubAPI {
 			release.setNumBugOfClasses();
 			
 			if(x+1 < releases.size()) {
-				prepareNextReleaseFiles(release, releases.get(x+1), releases);
+				prepareNextReleaseFiles(release, releases.get(x+1));
 			
 			}
 			
@@ -668,7 +662,7 @@ public class GitHubAPI {
 		}
 	}
 	
-	public void setBugPerClass(ArrayList<Bug> bugs, ArrayList<GitRelease> releases) {
+	public void setBugPerClass(List<Bug> bugs, List<GitRelease> releases) {
 		for (Bug bug: bugs) {	
 			
 			
